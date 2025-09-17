@@ -12,7 +12,7 @@
       padding: 0;
     }
     .container {
-      max-width: 480px;
+      max-width: 520px;
       margin: 0 auto;
       padding: 24px;
     }
@@ -88,6 +88,33 @@
       padding: 16px;
       border-radius: 8px;
       border: 2px solid #388e3c;
+    }
+    .breakdown-box {
+      background: #f5f5f5;
+      color: #333;
+      font-size: 0.97em;
+      margin-top: 10px;
+      padding: 14px;
+      border-radius: 7px;
+      border: 1px solid #bbb;
+      overflow-x: auto;
+    }
+    .breakdown-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .breakdown-table th, .breakdown-table td {
+      border: 1px solid #ddd;
+      padding: 6px 8px;
+      text-align: center;
+    }
+    .breakdown-table th {
+      background: #e0e0e0;
+      font-weight: bold;
+    }
+    .breakdown-table tr:last-child td {
+      font-weight: bold;
+      background: #eee;
     }
     .section-title {
       font-size: 1.1em;
@@ -239,6 +266,7 @@
     </form>
 
     <div id="result" class="result" style="display:none;"></div>
+    <div id="breakdown" class="breakdown-box" style="display:none;"></div>
   </div>
 
   <script>
@@ -332,7 +360,6 @@
       return 0;
     }
 
-    // Adjust payout based on percent entered as 0-999, so convert to decimal
     function adjustPayout(percent, base) {
       const pct = percent / 100;
       if (pct > 0.7999 && pct < 1.25) {
@@ -345,27 +372,26 @@
     }
 
     function resetForm() {
-      // Only reset inputs except GP
-      document.getElementById('cpv').value = '100';
-      document.getElementById('bts').value = '100';
-      document.getElementById('vaf').value = '100';
-      document.getElementById('accgp').value = '100';
-      document.getElementById('tfb').value = '100';
+      document.getElementById('cpv').value = '';
+      document.getElementById('bts').value = '';
+      document.getElementById('vaf').value = '';
+      document.getElementById('accgp').value = '';
+      document.getElementById('tfb').value = '';
       document.getElementById('storecslb').value = '3rd';
       document.getElementById('tfb%').value = '90-124.99';
       document.getElementById('top15hsi').value = 'no';
       document.getElementById('top15tfb').value = 'no';
       document.getElementById('tlife').value = 'no';
       document.getElementById('socialmedia').value = '0.5-1post/100doorswings';
-      document.getElementById('perfectpunch').value = 'yes';
+      document.getElementById('perfectpunch').value = 'no';
       document.getElementById('mvpaward').value = 'no';
       document.getElementById('achieveall').value = 'no';
       document.getElementById('worldclass').value = 'no';
       document.getElementById('result').style.display = "none";
+      document.getElementById('breakdown').style.display = "none";
     }
 
     function maxPayout() {
-      // Set all to max payout values, except GP
       document.getElementById('cpv').value = '125';
       document.getElementById('bts').value = '125';
       document.getElementById('vaf').value = '125';
@@ -382,6 +408,7 @@
       document.getElementById('achieveall').value = 'yes';
       document.getElementById('worldclass').value = 'yes';
       document.getElementById('result').style.display = "none";
+      document.getElementById('breakdown').style.display = "none";
     }
 
     function calculateBonus() {
@@ -393,7 +420,6 @@
       const accgp = Number(document.getElementById('accgp').value);
       const tfb = Number(document.getElementById('tfb').value);
       const perfectpunch = document.getElementById('perfectpunch').value;
-      
       const storecslb = document.getElementById('storecslb').value;
       const mvpaward = document.getElementById('mvpaward').value;
       const top15tfb = document.getElementById('top15tfb').value;
@@ -404,13 +430,42 @@
       const socialmedia = document.getElementById('socialmedia').value;
       const tfbPercent = document.getElementById('tfb%').value;
 
-      // If Perfect Punch is "no", show $0 and exit.
+      // If Perfect Punch is "no", show $0 and breakdown indicating all are zero
       if (perfectpunch === "no") {
         document.getElementById('result').style.display = "block";
         document.getElementById('result').innerHTML = `
           <div>Estimated Bonus Payout:</div>
           <div style="font-size:2em;">$0.00</div>
         `;
+        document.getElementById('breakdown').style.display = "block";
+        let breakdownRows = [
+          ["CPV", "—", "—", "$0.00"],
+          ["BTS", "—", "—", "$0.00"],
+          ["VAF", "—", "—", "$0.00"],
+          ["Accessories", "—", "—", "$0.00"],
+          ["TFB", "—", "—", "$0.00"],
+          ["CSLB", "—", "—", "$0.00"],
+          ["Top 15 TFB", "—", "—", "$0.00"],
+          ["Top 15 HSI", "—", "—", "$0.00"],
+          ["T-Life Below 65%", "—", "—", "$0.00"],
+          ["TFB %", "—", "—", "$0.00"],
+          ["Social Media", "—", "—", "$0.00"],
+          ["World Class", "$500", "no", "$0.00"],
+          ["Achieve All", "$300", "no", "$0.00"],
+          ["MVP Award", "—", "no", "$0.00"],
+          ["Total Bonus", "", "", "$0.00"]
+        ];
+        let breakdownHTML = `<table class="breakdown-table"><thead><tr>
+            <th>Line Item</th>
+            <th>Bucket</th>
+            <th>Attained</th>
+            <th>Total</th>
+          </tr></thead><tbody>`;
+        breakdownRows.forEach(row => {
+          breakdownHTML += `<tr><td>${row[0]}</td><td>${row[1]}</td><td>${row[2]}</td><td>${row[3]}</td></tr>`;
+        });
+        breakdownHTML += `</tbody></table>`;
+        document.getElementById('breakdown').innerHTML = breakdownHTML;
         return;
       }
       
@@ -462,17 +517,49 @@
 
       const socialPerc = socialMediaBonusPerc[socialmedia] || 0;
       const socialBonus = totalAdj * socialPerc;
-      
-      const totalBonus = cslbPayout + tfbBonus + hsiBonus + wcBonus + aaBonus + mvpPayout + tlifeBonus + socialBonus + tfbPercentBonus;
 
-      // Final total
+      // Breakdown rows
+      let breakdownRows = [
+        ["CPV", `$${cpvPayout}`, `${cpv}%`, `$${cpvAdj.toFixed(2)}`],
+        ["BTS", `$${btsPayout}`, `${bts}%`, `$${btsAdj.toFixed(2)}`],
+        ["VAF", `$${vafPayout}`, `${vaf}%`, `$${vafAdj.toFixed(2)}`],
+        ["Accessories", `$${accgpPayout}`, `${accgp}%`, `$${accgpAdj.toFixed(2)}`],
+        ["TFB", `$${tfbPayout}`, `${tfb}%`, `$${tfbAdj.toFixed(2)}`],
+        ["CSLB", `${(cslbPerc*100).toFixed(0)}%`, `${storecslb}`, `$${cslbPayout.toFixed(2)}`],
+        ["Top 15 TFB", "5%", `${top15tfb}`, `$${tfbBonus.toFixed(2)}`],
+        ["Top 15 HSI", "5%", `${top15hsi}`, `$${hsiBonus.toFixed(2)}`],
+        ["T-Life Below 65%", "-10%", `${tlife}`, `$${tlifeBonus.toFixed(2)}`],
+        ["TFB %", `${(tfbPercentPerc*100).toFixed(0)}%`, `${tfbPercent}`, `$${tfbPercentBonus.toFixed(2)}`],
+        ["Social Media", `${(socialPerc*100).toFixed(0)}%`, `${socialmedia}`, `$${socialBonus.toFixed(2)}`],
+        ["World Class", "$500", `${worldclass}`, `$${wcBonus.toFixed(2)}`],
+        ["Achieve All", "$300", `${achieveall}`, `$${aaBonus.toFixed(2)}`],
+        ["MVP Award", `$${mvpPayout}`, `${mvpaward}`, `$${mvpPayout.toFixed(2)}`]
+      ];
+
+      const totalBonus = cslbPayout + tfbBonus + hsiBonus + wcBonus + aaBonus + mvpPayout + tlifeBonus + socialBonus + tfbPercentBonus;
       const totalPayout = totalAdj + totalBonus;
+
+      breakdownRows.push(["Total Bonus", "", "", `$${totalPayout.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}`]);
 
       document.getElementById('result').style.display = "block";
       document.getElementById('result').innerHTML = `
         <div>Estimated Bonus Payout:</div>
         <div style="font-size:2em;">$${totalPayout.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
       `;
+
+      // Breakdown table
+      let breakdownHTML = `<table class="breakdown-table"><thead><tr>
+        <th>Line Item</th>
+        <th>Bucket</th>
+        <th>Attained</th>
+        <th>Total</th>
+      </tr></thead><tbody>`;
+      breakdownRows.forEach(row => {
+        breakdownHTML += `<tr><td>${row[0]}</td><td>${row[1]}</td><td>${row[2]}</td><td>${row[3]}</td></tr>`;
+      });
+      breakdownHTML += `</tbody></table>`;
+      document.getElementById('breakdown').style.display = "block";
+      document.getElementById('breakdown').innerHTML = breakdownHTML;
     }
   </script>
 </body>
