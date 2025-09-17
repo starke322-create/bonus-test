@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RSM Bonus Calculator (Tier 1)</title>
+  <style>
+    body {
+      background: #fff;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+    h1 {
+      font-size: 1.3em;
+      text-align: center;
+      margin-bottom: 10px;
+      color: #c2185b;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 12px;
+    }
+    .input-row {
+      display: flex;
+      gap: 12px;
+    }
+    .input-col {
+      flex: 1;
+    }
+    input, select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 4px;
+      margin-bottom: 8px;
+      font-size: 1em;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      background: #fff;
+    }
+    .result {
+      background: #e8f5e9;
+      color: #388e3c;
+      font-size: 1.2em;
+      font-weight: bold;
+      text-align: center;
+      margin-top: 20px;
+      padding: 16px;
+      border-radius: 8px;
+      border: 2px solid #388e3c;
+    }
+    .section-title {
+      font-size: 1.1em;
+      margin-top: 16px;
+      margin-bottom: 6px;
+      color: #333;
+      border-bottom: 1px solid #eee;
+    }
+    button {
+      background: #388e3c;
+      color: #fff;
+      font-size: 1em;
+      border: none;
+      padding: 10px;
+      margin-top: 18px;
+      width: 100%;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: #2e7031;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>August 2025 RSM Bonus Calculator (Tier 1)</h1>
+
+    <form id="bonusForm" autocomplete="off">
+
+      <div class="section-title">Store Performance Inputs</div>
+
+      <div class="input-row">
+        <div class="input-col">
+          <label for="gp">Trending Store GP</label>
+          <input type="number" id="gp" required min="0" step="1">
+        </div>
+        <div class="input-col">
+          <label for="cpv">CPV % Attained</label>
+          <input type="number" id="cpv" required min="0" max="200" step="0.01" placeholder="e.g. 100 for 100%">
+        </div>
+      </div>
+      <div class="input-row">
+        <div class="input-col">
+          <label for="vaf">VAF % Attained</label>
+          <input type="number" id="vaf" required min="0" max="200" step="0.01" placeholder="e.g. 100 for 100%">
+        </div>
+        <div class="input-col">
+          <label for="bts">BTS % Attained</label>
+          <input type="number" id="bts" required min="0" max="200" step="0.01" placeholder="e.g. 100 for 100%">
+        </div>
+      </div>
+      <div class="input-row">
+        <div class="input-col">
+          <label for="accgp">Acc GP % Attained</label>
+          <input type="number" id="accgp" required min="0" max="200" step="0.01" placeholder="e.g. 100 for 100%">
+        </div>
+        <div class="input-col">
+          <label for="tfb">TFB % Attained</label>
+          <input type="number" id="tfb" required min="0" max="200" step="0.01" placeholder="e.g. 100 for 100%">
+        </div>
+      </div>
+
+      <div class="section-title">Bonuses</div>
+      <label for="storecslb">Store CSLB</label>
+      <select id="storecslb" required>
+        <option value="1st">1st</option>
+        <option value="2nd">2nd</option>
+        <option value="3rd">3rd</option>
+        <option value="4th">4th</option>
+        <option value="5th">5th</option>
+      </select>
+
+      <label for="top15tfb">Top 15 TFB</label>
+      <select id="top15tfb" required>
+        <option value="no">No</option>
+        <option value="yes">Yes</option>
+      </select>
+
+      <label for="top15hsi">Top 15 HSI</label>
+      <select id="top15hsi" required>
+        <option value="no">No</option>
+        <option value="yes">Yes</option>
+      </select>
+
+      <label for="worldclass">World Class</label>
+      <select id="worldclass" required>
+        <option value="no">No</option>
+        <option value="yes">Yes</option>
+      </select>
+
+      <label for="achieveall">Achieve All</label>
+      <select id="achieveall" required>
+        <option value="no">No</option>
+        <option value="yes">Yes</option>
+      </select>
+
+      <button type="button" onclick="calculateBonus()">Calculate Bonus</button>
+    </form>
+
+    <div id="result" class="result" style="display:none;"></div>
+  </div>
+
+  <script>
+    // Reference payout tables for each metric
+    const cpvTable = [
+      {min: 0, max: 10999.99, payout: 150},
+      {min: 11000, max: 20999.99, payout: 375},
+      {min: 21000, max: 30999.99, payout: 600},
+      {min: 31000, max: 40999.99, payout: 800},
+      {min: 46000, max: 60999.99, payout: 1000},
+      {min: 61000, max: 80999.99, payout: 1200},
+      {min: 81000, max: 200000, payout: 1400}
+    ];
+    const btsTable = [
+      {min: 0, max: 10999.99, payout: 75},
+      {min: 11000, max: 20999.99, payout: 175},
+      {min: 21000, max: 30999.99, payout: 300},
+      {min: 31000, max: 40999.99, payout: 400},
+      {min: 46000, max: 60999.99, payout: 500},
+      {min: 61000, max: 80999.99, payout: 600},
+      {min: 81000, max: 200000, payout: 800}
+    ];
+    const vafTable = [
+      {min: 0, max: 10999.99, payout: 75},
+      {min: 11000, max: 20999.99, payout: 100},
+      {min: 21000, max: 30999.99, payout: 175},
+      {min: 31000, max: 40999.99, payout: 250},
+      {min: 46000, max: 60999.99, payout: 325},
+      {min: 61000, max: 80999.99, payout: 500},
+      {min: 81000, max: 200000, payout: 650}
+    ];
+    const accgpTable = [ // renamed from netgpTable
+      {min: 0, max: 10999.99, payout: 50},
+      {min: 11000, max: 20999.99, payout: 75},
+      {min: 21000, max: 30999.99, payout: 150},
+      {min: 31000, max: 40999.99, payout: 225},
+      {min: 46000, max: 60999.99, payout: 300},
+      {min: 61000, max: 80999.99, payout: 450},
+      {min: 81000, max: 200000, payout: 600}
+    ];
+    const tfbTable = [
+      {min: 0, max: 10999.99, payout: 50},
+      {min: 11000, max: 20999.99, payout: 75},
+      {min: 21000, max: 30999.99, payout: 100},
+      {min: 31000, max: 40999.99, payout: 200},
+      {min: 46000, max: 60999.99, payout: 250},
+      {min: 61000, max: 80999.99, payout: 400},
+      {min: 81000, max: 200000, payout: 500}
+    ];
+
+    // CSLB bonus lookup
+    const cslbBonus = {
+      "1st": 0.20,
+      "2nd": 0.10,
+      "3rd": 0.00,
+      "4th": -0.10,
+      "5th": -0.20
+    };
+
+    // Fixed amounts for World Class and Achieve All
+    const worldClassBonus = 500;
+    const achieveAllBonus = 300;
+
+    function vlookupPayout(gp, table) {
+      for (let i = 0; i < table.length; i++) {
+        if (gp >= table[i].min && gp <= table[i].max) {
+          return table[i].payout;
+        }
+      }
+      return 0;
+    }
+
+    // Adjust payout based on percent entered as 0-200, so convert to decimal
+    function adjustPayout(percent, base) {
+      const pct = percent / 100;
+      if (pct > 0.7999 && pct < 1.25) {
+        return base * pct;
+      } else if (pct > 1.2499) {
+        return base * 1.25;
+      } else {
+        return 0;
+      }
+    }
+
+    function calculateBonus() {
+      // Inputs
+      const gp = Number(document.getElementById('gp').value);
+      const cpv = Number(document.getElementById('cpv').value);
+      const bts = Number(document.getElementById('bts').value);
+      const vaf = Number(document.getElementById('vaf').value);
+      const accgp = Number(document.getElementById('accgp').value);
+      const tfb = Number(document.getElementById('tfb').value);
+
+      const storecslb = document.getElementById('storecslb').value;
+      const top15tfb = document.getElementById('top15tfb').value;
+      const top15hsi = document.getElementById('top15hsi').value;
+      const worldclass = document.getElementById('worldclass').value;
+      const achieveall = document.getElementById('achieveall').value;
+
+      // Lookups for base payout
+      const cpvPayout = vlookupPayout(gp, cpvTable);
+      const btsPayout = vlookupPayout(gp, btsTable);
+      const vafPayout = vlookupPayout(gp, vafTable);
+      const accgpPayout = vlookupPayout(gp, accgpTable);
+      const tfbPayout = vlookupPayout(gp, tfbTable);
+
+      // Adjusted payouts
+      const cpvAdj = adjustPayout(cpv, cpvPayout);
+      const btsAdj = adjustPayout(bts, btsPayout);
+      const vafAdj = adjustPayout(vaf, vafPayout);
+      const accgpAdj = adjustPayout(accgp, accgpPayout);
+      const tfbAdj = adjustPayout(tfb, tfbPayout);
+
+      const totalAdj = cpvAdj + btsAdj + vafAdj + accgpAdj + tfbAdj;
+
+      // Bonus calculations
+      // CSLB bonus
+      const cslbPerc = cslbBonus[storecslb] || 0;
+      const cslbPayout = totalAdj * cslbPerc;
+
+      // Top 15 TFB
+      const tfbPerc = (top15tfb === "yes") ? 0.05 : 0;
+      const tfbBonus = totalAdj * tfbPerc;
+
+      // Top 15 HSI
+      const hsiPerc = (top15hsi === "yes") ? 0.05 : 0;
+      const hsiBonus = totalAdj * hsiPerc;
+
+      // World Class
+      const wcBonus = (worldclass === "yes") ? worldClassBonus : 0;
+
+      // Achieve All
+      const aaBonus = (achieveall === "yes") ? achieveAllBonus : 0;
+
+      const totalBonus = cslbPayout + tfbBonus + hsiBonus + wcBonus + aaBonus;
+
+      // Final total
+      const totalPayout = totalAdj + totalBonus;
+
+      document.getElementById('result').style.display = "block";
+      document.getElementById('result').innerHTML = `
+        <div>Estimated Bonus Payout:</div>
+        <div style="font-size:2em;">$${totalPayout.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+      `;
+    }
+  </script>
+</body>
+</html>
