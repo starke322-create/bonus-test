@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DM Bonus Calculator</title>
+  <title>DM Bonus</title>
   <style>
     body {
       background: #fff;
@@ -116,7 +116,7 @@
       font-weight: bold;
       background: #eee;
     }
-      .tier-text {
+    .tier-text {
       font-size: 1.07em;
       color: #222;
       font-weight: bold;
@@ -251,7 +251,7 @@
       </div>
 
       <div class="button-row">
-        <button type="button" class="side-btn" onclick="resetForm()">Reset</button>
+        <button type="button" class="side-btn" onclick="resetForm()">Reset (100%)</button>
         <button type="button" class="side-btn" onclick="maxPayout()">Max Payout</button>
       </div>
       <button type="button" class="calc-btn" onclick="calculateBonus()">Calculate Bonus</button>
@@ -355,10 +355,8 @@
     function getGpTier(gp, table) {
       for (let i = 0; i < table.length; i++) {
         if (gp >= table[i].min && gp <= table[i].max) {
-          // Format the tier as shown in your example (e.g. "75k-149k")
           let minTier = Math.round(table[i].min/1000);
           let maxTier = Math.round(table[i].max/1000);
-          // Adjust to "999k+" for top tier
           let maxTierStr = maxTier >= 999 ? (minTier + "k+") : maxTier + "k";
           return `GP Tier Achieved (${minTier}k-${maxTierStr})`;
         }
@@ -446,9 +444,7 @@
           ["Accessories", "—", "—", "$0.00"],
           ["TFB", "—", "—", "$0.00"],
           ["CSLB", "—", "—", "$0.00"],
-          ["Top 15 TFB", "—", "—", "$0.00"],
-          ["Top 15 HSI", "—", "—", "$0.00"],
-          ["T-Life Below 65%", "—", "—", "$0.00"],
+          ["T-Life", "—", "—", "$0.00"],
           ["TFB %", "—", "—", "$0.00"],
           ["Social Media", "—", "—", "$0.00"],
           ["World Class", "$500", "no", "$0.00"],
@@ -514,6 +510,56 @@
       const socialPerc = socialMediaBonusPerc[socialmedia] || 0;
       const socialBonus = totalAdj * socialPerc;
 
+      // Over $400k bonus calculation
+      let over400kBonus = 0;
+      let over400kLine = null;
+      if (gp > 400000) {
+        let gpOver = gp - 400000;
+        let percentSum = 0;
+        let over400kDetails = [];
+        // Voice: (using CPV as proxy for Voice)
+        if (cpv > 110) {
+          percentSum += 0.01;
+          over400kDetails.push("Voice 1%");
+        }
+        // BTS
+        if (bts > 110) {
+          percentSum += 0.01;
+          over400kDetails.push("BTS 1%");
+        }
+        // TFB
+        if (tfb > 110) {
+          percentSum += 0.002;
+          over400kDetails.push("TFB 0.2%");
+        }
+        // Accessory GP
+        if (accgp > 110) {
+          percentSum += 0.0025;
+          over400kDetails.push("Accessory GP 0.25%");
+        }
+        // VAF
+        if (vaf > 110) {
+          percentSum += 0.0025;
+          over400kDetails.push("VAF 0.25%");
+        }
+        over400kBonus = gpOver * percentSum;
+        if (percentSum > 0) {
+          over400kLine = [
+            "Over $400k",
+            `n/a`,
+            over400kDetails.join(", "),
+            `$${over400kBonus.toFixed(2)}`
+          ];
+        } else {
+          over400kLine = [
+            "Over $400k",
+            `n/a`,
+            "No metric > 110%",
+            "$0.00"
+          ];
+        }
+      }
+
       // Breakdown rows
       let breakdownRows = [
         ["CPV", `$${cpvPayout}`, `${cpv}%`, `$${cpvAdj.toFixed(2)}`],
@@ -530,7 +576,10 @@
         ["MVP Award", `$${mvpPayout}`, `${mvpaward}`, `$${mvpPayout.toFixed(2)}`]
       ];
 
-      const totalBonus = cslbPayout + wcBonus + aaBonus + mvpPayout + tlifeBonus + socialBonus + tfbPercentBonus;
+      // Add Over $400k line
+      if (over400kLine) breakdownRows.push(over400kLine);
+
+      const totalBonus = cslbPayout + wcBonus + aaBonus + mvpPayout + tlifeBonus + socialBonus + tfbPercentBonus + over400kBonus;
       const totalPayout = totalAdj + totalBonus;
 
       breakdownRows.push(["TOTAL", "", "", `$${totalPayout.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}`]);
@@ -541,6 +590,7 @@
         <div style="font-size:2em;">$${totalPayout.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
         <div style="font-size:0.93em; color: #555; margin-top:6px;">
           <em>Does not include operational losses</em>
+        </div>
       `;
 
       // Breakdown table
