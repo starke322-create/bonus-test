@@ -438,28 +438,29 @@
         `;
         document.getElementById('breakdown').style.display = "block";
         let breakdownRows = [
-          ["CPV", "—", "—", "$0.00"],
-          ["BTS", "—", "—", "$0.00"],
-          ["VAF", "—", "—", "$0.00"],
-          ["Accessories", "—", "—", "$0.00"],
-          ["TFB", "—", "—", "$0.00"],
-          ["CSLB", "—", "—", "$0.00"],
-          ["T-Life", "—", "—", "$0.00"],
-          ["TFB %", "—", "—", "$0.00"],
-          ["Social Media", "—", "—", "$0.00"],
-          ["World Class", "$500", "no", "$0.00"],
-          ["Achieve All", "$300", "no", "$0.00"],
-          ["MVP Award", "—", "no", "$0.00"],
-          ["TOTAL", "", "", "$0.00"]
+          ["CPV", "—", "—", "$0.00", "$0.00"],
+          ["BTS", "—", "—", "$0.00", "$0.00"],
+          ["VAF", "—", "—", "$0.00", "$0.00"],
+          ["Accessories", "—", "—", "$0.00", "$0.00"],
+          ["TFB", "—", "—", "$0.00", "$0.00"],
+          ["CSLB", "—", "—", "$0.00", ""],
+          ["T-Life", "—", "—", "$0.00", ""],
+          ["TFB %", "—", "—", "$0.00", ""],
+          ["Social Media", "—", "—", "$0.00", ""],
+          ["World Class", "$500", "no", "$0.00", ""],
+          ["Achieve All", "$300", "no", "$0.00", ""],
+          ["MVP Award", "—", "no", "$0.00", ""],
+          ["TOTAL", "", "", "$0.00", "$0.00"]
         ];
         let breakdownHTML = `<table class="breakdown-table"><thead><tr>
             <th>Line Item</th>
             <th>Bucket</th>
             <th>Attained</th>
             <th>Total</th>
+            <th>Over $400k</th>
           </tr></thead><tbody>`;
         breakdownRows.forEach(row => {
-          breakdownHTML += `<tr><td>${row[0]}</td><td>${row[1]}</td><td>${row[2]}</td><td>${row[3]}</td></tr>`;
+          breakdownHTML += `<tr>${row.map(cell => `<td>${cell}</td>`).join('')}</tr>`;
         });
         breakdownHTML += `</tbody></table>`;
         document.getElementById('breakdown').innerHTML = breakdownHTML;
@@ -510,79 +511,62 @@
       const socialPerc = socialMediaBonusPerc[socialmedia] || 0;
       const socialBonus = totalAdj * socialPerc;
 
-      // Over $400k bonus calculation
-      let over400kBonus = 0;
-      let over400kLine = null;
-      if (gp > 400000) {
-        let gpOver = gp - 400000;
-        let percentSum = 0;
-        let over400kDetails = [];
-        // Voice: (using CPV as proxy for Voice)
+      // Over $400k payout per metric
+      let over400kPerMetric = {
+        "CPV": 0, "BTS": 0, "TFB": 0, "Accessories": 0, "VAF": 0
+      };
+      let over400kTotal = 0;
+      let gpOver = Math.max(0, gp - 400000);
+
+      if (gpOver > 0) {
         if (cpv > 110) {
-          percentSum += 0.01;
-          over400kDetails.push("Voice 1%");
+          over400kPerMetric["CPV"] = gpOver * 0.01;
+          over400kTotal += over400kPerMetric["CPV"];
         }
-        // BTS
         if (bts > 110) {
-          percentSum += 0.01;
-          over400kDetails.push("BTS 1%");
+          over400kPerMetric["BTS"] = gpOver * 0.01;
+          over400kTotal += over400kPerMetric["BTS"];
         }
-        // TFB
         if (tfb > 110) {
-          percentSum += 0.002;
-          over400kDetails.push("TFB 0.2%");
+          over400kPerMetric["TFB"] = gpOver * 0.002;
+          over400kTotal += over400kPerMetric["TFB"];
         }
-        // Accessory GP
         if (accgp > 110) {
-          percentSum += 0.0025;
-          over400kDetails.push("Accessory GP 0.25%");
+          over400kPerMetric["Accessories"] = gpOver * 0.0025;
+          over400kTotal += over400kPerMetric["Accessories"];
         }
-        // VAF
         if (vaf > 110) {
-          percentSum += 0.0025;
-          over400kDetails.push("VAF 0.25%");
-        }
-        over400kBonus = gpOver * percentSum;
-        if (percentSum > 0) {
-          over400kLine = [
-            "Over $400k",
-            `n/a`,
-            over400kDetails.join(", "),
-            `$${over400kBonus.toFixed(2)}`
-          ];
-        } else {
-          over400kLine = [
-            "Over $400k",
-            `n/a`,
-            "No metric > 110%",
-            "$0.00"
-          ];
+          over400kPerMetric["VAF"] = gpOver * 0.0025;
+          over400kTotal += over400kPerMetric["VAF"];
         }
       }
 
       // Breakdown rows
       let breakdownRows = [
-        ["CPV", `$${cpvPayout}`, `${cpv}%`, `$${cpvAdj.toFixed(2)}`],
-        ["BTS", `$${btsPayout}`, `${bts}%`, `$${btsAdj.toFixed(2)}`],
-        ["VAF", `$${vafPayout}`, `${vaf}%`, `$${vafAdj.toFixed(2)}`],
-        ["Accessories", `$${accgpPayout}`, `${accgp}%`, `$${accgpAdj.toFixed(2)}`],
-        ["TFB", `$${tfbPayout}`, `${tfb}%`, `$${tfbAdj.toFixed(2)}`],
-        ["CSLB", `${(cslbPerc*100).toFixed(0)}%`, `${districtcslb}`, `$${cslbPayout.toFixed(2)}`],
-        ["T-Life", "-10%", `${tlife}`, `$${tlifeBonus.toFixed(2)}`],
-        ["TFB %", `${(tfbPercentPerc*100).toFixed(0)}%`, `${tfbPercent}`, `$${tfbPercentBonus.toFixed(2)}`],
-        ["Social Media", `${(socialPerc*100).toFixed(0)}%`, `${socialmedia}`, `$${socialBonus.toFixed(2)}`],
-        ["World Class", "$750", `${worldclass}`, `$${wcBonus.toFixed(2)}`],
-        ["Achieve All", "$500", `${achieveall}`, `$${aaBonus.toFixed(2)}`],
-        ["MVP Award", `$${mvpPayout}`, `${mvpaward}`, `$${mvpPayout.toFixed(2)}`]
+        ["CPV", `$${cpvPayout}`, `${cpv}%`, `$${cpvAdj.toFixed(2)}`, over400kPerMetric["CPV"] ? `$${over400kPerMetric["CPV"].toFixed(2)}` : ""],
+        ["BTS", `$${btsPayout}`, `${bts}%`, `$${btsAdj.toFixed(2)}`, over400kPerMetric["BTS"] ? `$${over400kPerMetric["BTS"].toFixed(2)}` : ""],
+        ["VAF", `$${vafPayout}`, `${vaf}%`, `$${vafAdj.toFixed(2)}`, over400kPerMetric["VAF"] ? `$${over400kPerMetric["VAF"].toFixed(2)}` : ""],
+        ["Accessories", `$${accgpPayout}`, `${accgp}%`, `$${accgpAdj.toFixed(2)}`, over400kPerMetric["Accessories"] ? `$${over400kPerMetric["Accessories"].toFixed(2)}` : ""],
+        ["TFB", `$${tfbPayout}`, `${tfb}%`, `$${tfbAdj.toFixed(2)}`, over400kPerMetric["TFB"] ? `$${over400kPerMetric["TFB"].toFixed(2)}` : ""],
+        ["CSLB", `${(cslbPerc*100).toFixed(0)}%`, `${districtcslb}`, `$${cslbPayout.toFixed(2)}`, ""],
+        ["T-Life", "-10%", `${tlife}`, `$${tlifeBonus.toFixed(2)}`, ""],
+        ["TFB %", `${(tfbPercentPerc*100).toFixed(0)}%`, `${tfbPercent}`, `$${tfbPercentBonus.toFixed(2)}`, ""],
+        ["Social Media", `${(socialPerc*100).toFixed(0)}%`, `${socialmedia}`, `$${socialBonus.toFixed(2)}`, ""],
+        ["World Class", "$750", `${worldclass}`, `$${wcBonus.toFixed(2)}`, ""],
+        ["Achieve All", "$500", `${achieveall}`, `$${aaBonus.toFixed(2)}`, ""],
+        ["MVP Award", `$${mvpPayout}`, `${mvpaward}`, `$${mvpPayout.toFixed(2)}`, ""]
       ];
 
-      // Add Over $400k line
-      if (over400kLine) breakdownRows.push(over400kLine);
+      breakdownRows.push([
+        "Over $400k Total", "", "", "", over400kTotal > 0 ? `$${over400kTotal.toFixed(2)}` : "$0.00"
+      ]);
 
-      const totalBonus = cslbPayout + wcBonus + aaBonus + mvpPayout + tlifeBonus + socialBonus + tfbPercentBonus + over400kBonus;
+      const totalBonus = cslbPayout + wcBonus + aaBonus + mvpPayout + tlifeBonus + socialBonus + tfbPercentBonus + over400kTotal;
       const totalPayout = totalAdj + totalBonus;
 
-      breakdownRows.push(["TOTAL", "", "", `$${totalPayout.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}`]);
+      breakdownRows.push([
+        "TOTAL", "", "", `$${totalPayout.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}`, ""
+      ]);
 
       document.getElementById('result').style.display = "block";
       document.getElementById('result').innerHTML = `
@@ -600,9 +584,10 @@
         <th>Bucket</th>
         <th>Attained</th>
         <th>Total</th>
+        <th>Over $400k</th>
       </tr></thead><tbody>`;
       breakdownRows.forEach(row => {
-        breakdownHTML += `<tr><td>${row[0]}</td><td>${row[1]}</td><td>${row[2]}</td><td>${row[3]}</td></tr>`;
+        breakdownHTML += `<tr>${row.map(cell => `<td>${cell}</td>`).join('')}</tr>`;
       });
       breakdownHTML += `</tbody></table>`;
       document.getElementById('breakdown').style.display = "block";
