@@ -152,9 +152,19 @@
         </div>
       </div>
 
+      <div class="input-row">
+        <div class="input-col">
+          <label for="premiumChargeback">Premium Chargeback</label>
+          <input type="number" id="premiumChargeback" min="0" step="0.01" placeholder="e.g. 500">
+        </div>
+        <div class="input-col">
+          <!-- Empty column for layout alignment -->
+        </div>
+      </div>
+
       <div class="button-row">
         <button type="button" class="side-btn" onclick="resetForm()">Reset</button>
-        <button type="button" class="side-btn" onclick="resetForm()">Clear</button>
+        <button type="button" class="side-btn" onclick="clearForm()">Clear</button>
       </div>
       <button type="button" class="calc-btn" onclick="calculateCommission()">Calculate</button>
     </form>
@@ -184,6 +194,39 @@
       {min: 500, max: Infinity, percent: 5}  // 5% for $500+
     ];
 
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      // Load saved values from localStorage
+      loadFromStorage();
+      
+      // Add event listeners to save on input change
+      document.getElementById('pcPremium').addEventListener('input', saveToStorage);
+      document.getElementById('lhPremium').addEventListener('input', saveToStorage);
+      document.getElementById('premiumChargeback').addEventListener('input', saveToStorage);
+    });
+
+    // Save input values to localStorage
+    function saveToStorage() {
+      const pcPremium = document.getElementById('pcPremium').value;
+      const lhPremium = document.getElementById('lhPremium').value;
+      const premiumChargeback = document.getElementById('premiumChargeback').value;
+      
+      localStorage.setItem('pcPremium', pcPremium);
+      localStorage.setItem('lhPremium', lhPremium);
+      localStorage.setItem('premiumChargeback', premiumChargeback);
+    }
+
+    // Load input values from localStorage
+    function loadFromStorage() {
+      const pcPremium = localStorage.getItem('pcPremium');
+      const lhPremium = localStorage.getItem('lhPremium');
+      const premiumChargeback = localStorage.getItem('premiumChargeback');
+      
+      if (pcPremium !== null) document.getElementById('pcPremium').value = pcPremium;
+      if (lhPremium !== null) document.getElementById('lhPremium').value = lhPremium;
+      if (premiumChargeback !== null) document.getElementById('premiumChargeback').value = premiumChargeback;
+    }
+
     function getTierPercent(amount, tiers) {
       for (let i = 0; i < tiers.length; i++) {
         if (amount >= tiers[i].min && amount <= tiers[i].max) {
@@ -207,17 +250,41 @@
       return "No Tier Found"; // Default (should not happen with Infinity in top tier)
     }
 
+    // Reset button - clears ALL inputs
     function resetForm() {
+      document.getElementById('pcPremium').value = '';
+      document.getElementById('lhPremium').value = '';
+      document.getElementById('premiumChargeback').value = '';
+      document.getElementById('result').style.display = "none";
+      document.getElementById('breakdown').style.display = "none";
+      
+      // Clear localStorage
+      localStorage.removeItem('pcPremium');
+      localStorage.removeItem('lhPremium');
+      localStorage.removeItem('premiumChargeback');
+    }
+
+    // Clear button - only clears P&C Premium and Life & Health Premium
+    function clearForm() {
       document.getElementById('pcPremium').value = '';
       document.getElementById('lhPremium').value = '';
       document.getElementById('result').style.display = "none";
       document.getElementById('breakdown').style.display = "none";
+      
+      // Update localStorage
+      localStorage.removeItem('pcPremium');
+      localStorage.removeItem('lhPremium');
     }
 
     function calculateCommission() {
       // Get input values
       const pcPremium = parseFloat(document.getElementById('pcPremium').value) || 0;
       const lhPremium = parseFloat(document.getElementById('lhPremium').value) || 0;
+      const premiumChargeback = parseFloat(document.getElementById('premiumChargeback').value) || 0;
+
+      // Calculate adjusted premium (P&C Premium - Premium Chargeback)
+      // Ensure adjusted premium is not negative
+      const adjustedPremium = Math.max(0, pcPremium - premiumChargeback);
 
       // Get tier percentages for each category
       const pcPercent = getTierPercent(pcPremium, pcTiers);
@@ -230,8 +297,8 @@
       const pcTierDesc = getTierDescription(pcPremium, pcTiers);
       const lhTierDesc = getTierDescription(lhPremium, lhTiers);
 
-      // Calculate total commission using combined rate on P&C Premium only
-      const totalCommission = (pcPremium * combinedRate) / 100;
+      // Calculate total commission using combined rate on adjusted premium
+      const totalCommission = (adjustedPremium * combinedRate) / 100;
 
       // Display result
       document.getElementById('result').style.display = "block";
@@ -270,6 +337,16 @@
       breakdownHTML += `<tr>
         <td colspan="2"><strong>P&C Premium (Base)</strong></td>
         <td colspan="2"><strong>$${pcPremium.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong></td>
+      </tr>`;
+
+      breakdownHTML += `<tr>
+        <td colspan="2"><strong>Premium Chargeback</strong></td>
+        <td colspan="2"><strong>$${premiumChargeback.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong></td>
+      </tr>`;
+
+      breakdownHTML += `<tr>
+        <td colspan="2"><strong>Adjusted Premium</strong></td>
+        <td colspan="2"><strong>$${adjustedPremium.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong></td>
       </tr>`;
       
       breakdownHTML += `<tr>
