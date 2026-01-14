@@ -190,8 +190,7 @@
           return tiers[i].percent;
         }
       }
-      // If amount exceeds highest tier, use the highest tier percentage
-      return tiers[tiers.length - 1].percent;
+      return 0; // Default to 0% if no tier matches (should not happen with Infinity in top tier)
     }
 
     function getTierDescription(amount, tiers) {
@@ -205,7 +204,7 @@
           return `$${minFormatted} - $${maxFormatted}`;
         }
       }
-      return "Above Max Tier";
+      return "No Tier Found"; // Default (should not happen with Infinity in top tier)
     }
 
     function resetForm() {
