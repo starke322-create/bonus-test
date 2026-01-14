@@ -158,7 +158,12 @@
           <input type="number" id="premiumChargeback" min="0" step="0.01" placeholder="e.g. 500">
         </div>
         <div class="input-col">
-          <!-- Empty column for layout alignment -->
+          <label for="tenure">Tenure</label>
+          <select id="tenure">
+            <option value="6+">6+ Months</option>
+            <option value="4-6">4-6 Months</option>
+            <option value="1-3">1-3 Months</option>
+          </select>
         </div>
       </div>
 
@@ -203,6 +208,7 @@
       document.getElementById('pcPremium').addEventListener('input', saveToStorage);
       document.getElementById('lhPremium').addEventListener('input', saveToStorage);
       document.getElementById('premiumChargeback').addEventListener('input', saveToStorage);
+      document.getElementById('tenure').addEventListener('change', saveToStorage);
     });
 
     // Save input values to localStorage
@@ -210,10 +216,12 @@
       const pcPremium = document.getElementById('pcPremium').value;
       const lhPremium = document.getElementById('lhPremium').value;
       const premiumChargeback = document.getElementById('premiumChargeback').value;
+      const tenure = document.getElementById('tenure').value;
       
       localStorage.setItem('pcPremium', pcPremium);
       localStorage.setItem('lhPremium', lhPremium);
       localStorage.setItem('premiumChargeback', premiumChargeback);
+      localStorage.setItem('tenure', tenure);
     }
 
     // Load input values from localStorage
@@ -221,10 +229,12 @@
       const pcPremium = localStorage.getItem('pcPremium');
       const lhPremium = localStorage.getItem('lhPremium');
       const premiumChargeback = localStorage.getItem('premiumChargeback');
+      const tenure = localStorage.getItem('tenure');
       
       if (pcPremium !== null) document.getElementById('pcPremium').value = pcPremium;
       if (lhPremium !== null) document.getElementById('lhPremium').value = lhPremium;
       if (premiumChargeback !== null) document.getElementById('premiumChargeback').value = premiumChargeback;
+      if (tenure !== null) document.getElementById('tenure').value = tenure;
     }
 
     function getTierPercent(amount, tiers) {
@@ -255,6 +265,7 @@
       document.getElementById('pcPremium').value = '';
       document.getElementById('lhPremium').value = '';
       document.getElementById('premiumChargeback').value = '';
+      document.getElementById('tenure').value = '6+';  // Reset to default
       document.getElementById('result').style.display = "none";
       document.getElementById('breakdown').style.display = "none";
       
@@ -262,6 +273,7 @@
       localStorage.removeItem('pcPremium');
       localStorage.removeItem('lhPremium');
       localStorage.removeItem('premiumChargeback');
+      localStorage.removeItem('tenure');
     }
 
     // Clear button - only clears P&C Premium and Life & Health Premium
@@ -281,13 +293,27 @@
       const pcPremium = parseFloat(document.getElementById('pcPremium').value) || 0;
       const lhPremium = parseFloat(document.getElementById('lhPremium').value) || 0;
       const premiumChargeback = parseFloat(document.getElementById('premiumChargeback').value) || 0;
+      const tenure = document.getElementById('tenure').value;
 
       // Calculate adjusted premium (P&C Premium - Premium Chargeback)
       // Ensure adjusted premium is not negative
       const adjustedPremium = Math.max(0, pcPremium - premiumChargeback);
 
       // Get tier percentages for each category
-      const pcPercent = getTierPercent(pcPremium, pcTiers);
+      let pcPercent;
+      
+      // Apply tenure-based logic for P&C rate
+      if (tenure === '1-3') {
+        // 1-3 Months: automatically get 5% from P&C tier no matter the amount
+        pcPercent = 5;
+      } else if (tenure === '4-6') {
+        // 4-6 Months: get 5% once they hit $20,000 in P&C premium
+        pcPercent = pcPremium >= 20000 ? 5 : getTierPercent(pcPremium, pcTiers);
+      } else {
+        // 6+ Months: original tier calculation
+        pcPercent = getTierPercent(pcPremium, pcTiers);
+      }
+      
       const lhPercent = getTierPercent(lhPremium, lhTiers);
 
       // Calculate combined rate (sum of individual rates)
