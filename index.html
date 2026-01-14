@@ -219,18 +219,22 @@
       const pcPremium = parseFloat(document.getElementById('pcPremium').value) || 0;
       const lhPremium = parseFloat(document.getElementById('lhPremium').value) || 0;
 
-      // Get tier percentages
+      // Calculate total premium
+      const totalPremium = pcPremium + lhPremium;
+
+      // Get tier percentages for each category
       const pcPercent = getTierPercent(pcPremium, pcTiers);
       const lhPercent = getTierPercent(lhPremium, lhTiers);
+
+      // Calculate combined rate (sum of individual rates)
+      const combinedRate = pcPercent + lhPercent;
 
       // Get tier descriptions
       const pcTierDesc = getTierDescription(pcPremium, pcTiers);
       const lhTierDesc = getTierDescription(lhPremium, lhTiers);
 
-      // Calculate commission amounts
-      const pcCommission = (pcPremium * pcPercent) / 100;
-      const lhCommission = (lhPremium * lhPercent) / 100;
-      const totalCommission = pcCommission + lhCommission;
+      // Calculate total commission using combined rate on total premium
+      const totalCommission = (totalPremium * combinedRate) / 100;
 
       // Display result
       document.getElementById('result').style.display = "block";
@@ -245,7 +249,6 @@
         <th>Premium</th>
         <th>Tier</th>
         <th>Rate</th>
-        <th>Commission</th>
       </tr></thead><tbody>`;
       
       breakdownHTML += `<tr>
@@ -253,7 +256,6 @@
         <td>$${pcPremium.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
         <td>${pcTierDesc}</td>
         <td>${pcPercent}%</td>
-        <td>$${pcCommission.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
       </tr>`;
       
       breakdownHTML += `<tr>
@@ -261,12 +263,21 @@
         <td>$${lhPremium.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
         <td>${lhTierDesc}</td>
         <td>${lhPercent}%</td>
-        <td>$${lhCommission.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
       </tr>`;
       
       breakdownHTML += `<tr>
-        <td colspan="4">TOTAL COMMISSION</td>
-        <td>$${totalCommission.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+        <td colspan="2"><strong>Total Premium</strong></td>
+        <td colspan="2"><strong>$${totalPremium.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong></td>
+      </tr>`;
+
+      breakdownHTML += `<tr>
+        <td colspan="2"><strong>Combined Rate</strong></td>
+        <td colspan="2"><strong>${combinedRate}%</strong></td>
+      </tr>`;
+      
+      breakdownHTML += `<tr>
+        <td colspan="3"><strong>TOTAL COMMISSION</strong></td>
+        <td><strong>$${totalCommission.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong></td>
       </tr>`;
       
       breakdownHTML += `</tbody></table>`;
