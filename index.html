@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RSM Bonus (Tier 1)</title>
+  <title>Premium Commission Calculator</title>
   <style>
     body {
       background: #fff;
@@ -135,48 +135,28 @@
 </head>
 <body>
   <div class="container">
-    <h1>Oct25 Unofficial RSM Bonus Calculator (Tier 1)</h1>
+    <h1>Premium Commission Calculator</h1>
 
-    <form id="bonusForm" autocomplete="off">
+    <form id="premiumForm" autocomplete="off">
 
-      <div class="section-title">Store Performance</div>
+      <div class="section-title">Premium Categories</div>
 
       <div class="input-row">
         <div class="input-col">
-          <label for="gp">Trending NET Store GP</label>
-          <input type="number" id="gp" required min="0" step="1" placeholder="e.g. 30000 for $30,000">
+          <label for="pcPremium">P&C Premium</label>
+          <input type="number" id="pcPremium" required min="0" step="0.01" placeholder="e.g. 25000">
         </div>
         <div class="input-col">
-          <label for="cpv">CPV % Attained</label>
-          <input type="number" id="cpv" required min="0" max="200" step="0.01" placeholder="e.g. 100 for 100%">
-        </div>
-      </div>
-      <div class="input-row">
-        <div class="input-col">
-          <label for="vaf">VAF % Attained</label>
-          <input type="number" id="vaf" required min="0" max="200" step="0.01" placeholder="e.g. 100 for 100%">
-        </div>
-        <div class="input-col">
-          <label for="bts">BTS % Attained</label>
-          <input type="number" id="bts" required min="0" max="200" step="0.01" placeholder="e.g. 100 for 100%">
-        </div>
-      </div>
-      <div class="input-row">
-        <div class="input-col">
-          <label for="accgp">Acc GP % Attained</label>
-          <input type="number" id="accgp" required min="0" max="200" step="0.01" placeholder="e.g. 100 for 100%">
-        </div>
-        <div class="input-col">
-          <label for="tfb">TFB % Attained</label>
-          <input type="number" id="tfb" required min="0" max="200" step="0.01" placeholder="e.g. 100 for 100%">
+          <label for="lhPremium">Life & Health Premium</label>
+          <input type="number" id="lhPremium" required min="0" step="0.01" placeholder="e.g. 300">
         </div>
       </div>
 
       <div class="button-row">
-        <button type="button" class="side-btn" onclick="resetForm()">Reset (100%)</button>
-        <button type="button" class="side-btn" onclick="maxPayout()">Max Payout</button>
+        <button type="button" class="side-btn" onclick="resetForm()">Reset</button>
+        <button type="button" class="side-btn" onclick="resetForm()">Clear</button>
       </div>
-      <button type="button" class="calc-btn" onclick="calculateBonus()">Calculate Bonus</button>
+      <button type="button" class="calc-btn" onclick="calculateCommission()">Calculate</button>
     </form>
 
     <div id="result" class="result" style="display:none;"></div>
@@ -184,167 +164,124 @@
   </div>
 
   <script>
-    // Reference payout tables for each metric
-    const cpvTable = [
-      {min: 0, max: 10999.99, payout: 150},
-      {min: 11000, max: 20999.99, payout: 375},
-      {min: 21000, max: 30999.99, payout: 600},
-      {min: 31000, max: 45999.99, payout: 800},
-      {min: 46000, max: 60999.99, payout: 1000},
-      {min: 61000, max: 80999.99, payout: 1200},
-      {min: 81000, max: 999999.99, payout: 1400}
-    ];
-    const btsTable = [
-      {min: 0, max: 10999.99, payout: 75},
-      {min: 11000, max: 20999.99, payout: 175},
-      {min: 21000, max: 30999.99, payout: 300},
-      {min: 31000, max: 45999.99, payout: 400},
-      {min: 46000, max: 60999.99, payout: 500},
-      {min: 61000, max: 80999.99, payout: 600},
-      {min: 81000, max: 999999.99, payout: 800}
-    ];
-    const vafTable = [
-      {min: 0, max: 10999.99, payout: 75},
-      {min: 11000, max: 20999.99, payout: 100},
-      {min: 21000, max: 30999.99, payout: 175},
-      {min: 31000, max: 45999.99, payout: 250},
-      {min: 46000, max: 60999.99, payout: 325},
-      {min: 61000, max: 80999.99, payout: 500},
-      {min: 81000, max: 999999.99, payout: 650}
-    ];
-    const accgpTable = [ // renamed from netgpTable
-      {min: 0, max: 10999.99, payout: 50},
-      {min: 11000, max: 20999.99, payout: 75},
-      {min: 21000, max: 30999.99, payout: 150},
-      {min: 31000, max: 45999.99, payout: 225},
-      {min: 46000, max: 60999.99, payout: 300},
-      {min: 61000, max: 80999.99, payout: 450},
-      {min: 81000, max: 999999.99, payout: 600}
-    ];
-    const tfbTable = [
-      {min: 0, max: 10999.99, payout: 50},
-      {min: 11000, max: 20999.99, payout: 75},
-      {min: 21000, max: 30999.99, payout: 100},
-      {min: 31000, max: 45999.99, payout: 200},
-      {min: 46000, max: 60999.99, payout: 250},
-      {min: 61000, max: 80999.99, payout: 400},
-      {min: 81000, max: 999999.99, payout: 500}
+    // P&C Premium Tiers
+    const pcTiers = [
+      {min: 0, max: 9999.99, percent: 0},
+      {min: 10000, max: 19999.99, percent: 1},
+      {min: 20000, max: 29999.99, percent: 2},
+      {min: 30000, max: 39999.99, percent: 3},
+      {min: 40000, max: 49999.99, percent: 4},
+      {min: 50000, max: Infinity, percent: 5}  // 5% for $50k+
     ];
 
-    function vlookupPayout(gp, table) {
-      for (let i = 0; i < table.length; i++) {
-        if (gp >= table[i].min && gp <= table[i].max) {
-          return table[i].payout;
+    // Life & Health Premium Tiers
+    const lhTiers = [
+      {min: 0, max: 99.99, percent: 0},
+      {min: 100, max: 199.99, percent: 1},
+      {min: 200, max: 299.99, percent: 2},
+      {min: 300, max: 399.99, percent: 3},
+      {min: 400, max: 499.99, percent: 4},
+      {min: 500, max: Infinity, percent: 5}  // 5% for $500+
+    ];
+
+    function getTierPercent(amount, tiers) {
+      for (let i = 0; i < tiers.length; i++) {
+        if (amount >= tiers[i].min && amount <= tiers[i].max) {
+          return tiers[i].percent;
         }
       }
-      return 0;
+      return 0; // Default to 0% if no tier matches (should not happen with Infinity in top tier)
     }
 
-    function getGpTier(gp, table) {
-      for (let i = 0; i < table.length; i++) {
-        if (gp >= table[i].min && gp <= table[i].max) {
-          // Format the tier as shown in your example (e.g. "75k-149k")
-          let minTier = Math.round(table[i].min/1000);
-          let maxTier = Math.round(table[i].max/1000);
-          // Adjust to "999k+" for top tier
-          let maxTierStr = maxTier >= 999 ? (minTier + "k+") : maxTier + "k";
-          return `GP Tier Achieved (${minTier}k-${maxTierStr})`;
+    function getTierDescription(amount, tiers) {
+      for (let i = 0; i < tiers.length; i++) {
+        if (amount >= tiers[i].min && amount <= tiers[i].max) {
+          const minFormatted = tiers[i].min.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+          if (tiers[i].max === Infinity) {
+            return `$${minFormatted}+`;
+          }
+          const maxFormatted = tiers[i].max.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+          return `$${minFormatted} - $${maxFormatted}`;
         }
       }
-      return "GP Tier Achieved (Below Minimum Tier)";
-    }
-    
-    function adjustPayout(percent, base) {
-      const pct = percent / 100;
-      if (pct > 0.7999 && pct < 1.25) {
-        return base * pct;
-      } else if (pct > 1.2499) {
-        return base * 1.25;
-      } else {
-        return 0;
-      }
+      return "No Tier Found"; // Default (should not happen with Infinity in top tier)
     }
 
     function resetForm() {
-      document.getElementById('cpv').value = '100';
-      document.getElementById('bts').value = '100';
-      document.getElementById('vaf').value = '100';
-      document.getElementById('accgp').value = '100';
-      document.getElementById('tfb').value = '100';
+      document.getElementById('pcPremium').value = '';
+      document.getElementById('lhPremium').value = '';
       document.getElementById('result').style.display = "none";
       document.getElementById('breakdown').style.display = "none";
     }
 
-    function maxPayout() {
-      document.getElementById('cpv').value = '125';
-      document.getElementById('bts').value = '125';
-      document.getElementById('vaf').value = '125';
-      document.getElementById('tfb').value = '125';
-      document.getElementById('accgp').value = '125';
-      document.getElementById('result').style.display = "none";
-      document.getElementById('breakdown').style.display = "none";
-    }
+    function calculateCommission() {
+      // Get input values
+      const pcPremium = parseFloat(document.getElementById('pcPremium').value) || 0;
+      const lhPremium = parseFloat(document.getElementById('lhPremium').value) || 0;
 
-    function calculateBonus() {
-      // Inputs
-      const rawGp = document.getElementById('gp').value.replace(/,/g, '').trim();
-      const gp = Math.floor(parseFloat(rawGp) || 0);
-      const cpv = Number(document.getElementById('cpv').value);
-      const bts = Number(document.getElementById('bts').value);
-      const vaf = Number(document.getElementById('vaf').value);
-      const accgp = Number(document.getElementById('accgp').value);
-      const tfb = Number(document.getElementById('tfb').value);
-      
-      // Lookups for base payout
-      const cpvPayout = vlookupPayout(gp, cpvTable);
-      const btsPayout = vlookupPayout(gp, btsTable);
-      const vafPayout = vlookupPayout(gp, vafTable);
-      const accgpPayout = vlookupPayout(gp, accgpTable);
-      const tfbPayout = vlookupPayout(gp, tfbTable);
+      // Calculate total premium
+      const totalPremium = pcPremium + lhPremium;
 
-      // Get GP Tier text
-      const gpTierText = getGpTier(gp, cpvTable);
+      // Get tier percentages for each category
+      const pcPercent = getTierPercent(pcPremium, pcTiers);
+      const lhPercent = getTierPercent(lhPremium, lhTiers);
 
-      // Adjusted payouts
-      const cpvAdj = adjustPayout(cpv, cpvPayout);
-      const btsAdj = adjustPayout(bts, btsPayout);
-      const vafAdj = adjustPayout(vaf, vafPayout);
-      const accgpAdj = adjustPayout(accgp, accgpPayout);
-      const tfbAdj = adjustPayout(tfb, tfbPayout);
+      // Calculate combined rate (sum of individual rates)
+      const combinedRate = pcPercent + lhPercent;
 
-      const totalPayout = cpvAdj + btsAdj + vafAdj + accgpAdj + tfbAdj;
+      // Get tier descriptions
+      const pcTierDesc = getTierDescription(pcPremium, pcTiers);
+      const lhTierDesc = getTierDescription(lhPremium, lhTiers);
 
-      // Breakdown rows
-      let breakdownRows = [
-        ["CPV", `$${cpvPayout}`, `${cpv}%`, `$${cpvAdj.toFixed(2)}`],
-        ["BTS", `$${btsPayout}`, `${bts}%`, `$${btsAdj.toFixed(2)}`],
-        ["VAF", `$${vafPayout}`, `${vaf}%`, `$${vafAdj.toFixed(2)}`],
-        ["Accessories", `$${accgpPayout}`, `${accgp}%`, `$${accgpAdj.toFixed(2)}`],
-        ["TFB", `$${tfbPayout}`, `${tfb}%`, `$${tfbAdj.toFixed(2)}`]
-      ];
+      // Calculate total commission using combined rate on total premium
+      const totalCommission = (totalPremium * combinedRate) / 100;
 
-      breakdownRows.push(["TOTAL", "", "", `$${totalPayout.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}`]);
-
+      // Display result
       document.getElementById('result').style.display = "block";
       document.getElementById('result').innerHTML = `
-        <div>Estimated Bonus Payout:</div>
-        <div style="font-size:2em;">$${totalPayout.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
-        <div style="font-size:0.93em; color: #555; margin-top:6px;">
-          <em>Does not include operational losses</em>
+        <div>Total Commission:</div>
+        <div style="font-size:2em;">$${totalCommission.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
       `;
 
       // Breakdown table
-      let breakdownHTML = `<div class="tier-text">${gpTierText}</div>`;
-      breakdownHTML += `<table class="breakdown-table"><thead><tr>
-        <th>Line Item</th>
-        <th>Bucket</th>
-        <th>Attained</th>
-        <th>Total</th>
+      let breakdownHTML = `<table class="breakdown-table"><thead><tr>
+        <th>Category</th>
+        <th>Premium</th>
+        <th>Tier</th>
+        <th>Rate</th>
       </tr></thead><tbody>`;
-      breakdownRows.forEach(row => {
-        breakdownHTML += `<tr><td>${row[0]}</td><td>${row[1]}</td><td>${row[2]}</td><td>${row[3]}</td></tr>`;
-      });
+      
+      breakdownHTML += `<tr>
+        <td>P&C</td>
+        <td>$${pcPremium.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+        <td>${pcTierDesc}</td>
+        <td>${pcPercent}%</td>
+      </tr>`;
+      
+      breakdownHTML += `<tr>
+        <td>Life & Health</td>
+        <td>$${lhPremium.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+        <td>${lhTierDesc}</td>
+        <td>${lhPercent}%</td>
+      </tr>`;
+      
+      breakdownHTML += `<tr>
+        <td colspan="2"><strong>Total Premium</strong></td>
+        <td colspan="2"><strong>$${totalPremium.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong></td>
+      </tr>`;
+
+      breakdownHTML += `<tr>
+        <td colspan="2"><strong>Combined Rate</strong></td>
+        <td colspan="2"><strong>${combinedRate}%</strong></td>
+      </tr>`;
+      
+      breakdownHTML += `<tr>
+        <td colspan="3"><strong>TOTAL COMMISSION</strong></td>
+        <td><strong>$${totalCommission.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong></td>
+      </tr>`;
+      
       breakdownHTML += `</tbody></table>`;
+      
       document.getElementById('breakdown').style.display = "block";
       document.getElementById('breakdown').innerHTML = breakdownHTML;
     }
