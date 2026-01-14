@@ -154,7 +154,7 @@
 
       <div class="button-row">
         <button type="button" class="side-btn" onclick="resetForm()">Reset</button>
-        <button type="button" class="side-btn" onclick="clearForm()">Clear</button>
+        <button type="button" class="side-btn" onclick="resetForm()">Clear</button>
       </div>
       <button type="button" class="calc-btn" onclick="calculateCommission()">Calculate</button>
     </form>
@@ -171,7 +171,7 @@
       {min: 20000, max: 29999.99, percent: 2},
       {min: 30000, max: 39999.99, percent: 3},
       {min: 40000, max: 49999.99, percent: 4},
-      {min: 50000, max: 99999.99, percent: 5}
+      {min: 50000, max: Infinity, percent: 5}  // 5% for $50k+
     ];
 
     // Life & Health Premium Tiers
@@ -181,7 +181,7 @@
       {min: 200, max: 299.99, percent: 2},
       {min: 300, max: 399.99, percent: 3},
       {min: 400, max: 499.99, percent: 4},
-      {min: 500, max: 9999.99, percent: 5}
+      {min: 500, max: Infinity, percent: 5}  // 5% for $500+
     ];
 
     function getTierPercent(amount, tiers) {
@@ -198,6 +198,9 @@
       for (let i = 0; i < tiers.length; i++) {
         if (amount >= tiers[i].min && amount <= tiers[i].max) {
           const minFormatted = tiers[i].min.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+          if (tiers[i].max === Infinity) {
+            return `$${minFormatted}+`;
+          }
           const maxFormatted = tiers[i].max.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
           return `$${minFormatted} - $${maxFormatted}`;
         }
@@ -210,10 +213,6 @@
       document.getElementById('lhPremium').value = '';
       document.getElementById('result').style.display = "none";
       document.getElementById('breakdown').style.display = "none";
-    }
-
-    function clearForm() {
-      resetForm();
     }
 
     function calculateCommission() {
