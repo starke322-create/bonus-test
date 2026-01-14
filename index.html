@@ -194,9 +194,15 @@
       {min: 500, max: Infinity, percent: 5}  // 5% for $500+
     ];
 
-    // Load saved values from localStorage on page load
-    window.addEventListener('DOMContentLoaded', function() {
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      // Load saved values from localStorage
       loadFromStorage();
+      
+      // Add event listeners to save on input change
+      document.getElementById('pcPremium').addEventListener('input', saveToStorage);
+      document.getElementById('lhPremium').addEventListener('input', saveToStorage);
+      document.getElementById('premiumChargeback').addEventListener('input', saveToStorage);
     });
 
     // Save input values to localStorage
@@ -220,13 +226,6 @@
       if (lhPremium !== null) document.getElementById('lhPremium').value = lhPremium;
       if (premiumChargeback !== null) document.getElementById('premiumChargeback').value = premiumChargeback;
     }
-
-    // Add event listeners to save on input change
-    document.addEventListener('DOMContentLoaded', function() {
-      document.getElementById('pcPremium').addEventListener('input', saveToStorage);
-      document.getElementById('lhPremium').addEventListener('input', saveToStorage);
-      document.getElementById('premiumChargeback').addEventListener('input', saveToStorage);
-    });
 
     function getTierPercent(amount, tiers) {
       for (let i = 0; i < tiers.length; i++) {
@@ -284,7 +283,8 @@
       const premiumChargeback = parseFloat(document.getElementById('premiumChargeback').value) || 0;
 
       // Calculate adjusted premium (P&C Premium - Premium Chargeback)
-      const adjustedPremium = pcPremium - premiumChargeback;
+      // Ensure adjusted premium is not negative
+      const adjustedPremium = Math.max(0, pcPremium - premiumChargeback);
 
       // Get tier percentages for each category
       const pcPercent = getTierPercent(pcPremium, pcTiers);
