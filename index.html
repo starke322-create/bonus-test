@@ -219,9 +219,6 @@
       const pcPremium = parseFloat(document.getElementById('pcPremium').value) || 0;
       const lhPremium = parseFloat(document.getElementById('lhPremium').value) || 0;
 
-      // Calculate total premium
-      const totalPremium = pcPremium + lhPremium;
-
       // Get tier percentages for each category
       const pcPercent = getTierPercent(pcPremium, pcTiers);
       const lhPercent = getTierPercent(lhPremium, lhTiers);
@@ -233,8 +230,8 @@
       const pcTierDesc = getTierDescription(pcPremium, pcTiers);
       const lhTierDesc = getTierDescription(lhPremium, lhTiers);
 
-      // Calculate total commission using combined rate on total premium
-      const totalCommission = (totalPremium * combinedRate) / 100;
+      // Calculate total commission using combined rate on P&C Premium only
+      const totalCommission = (pcPremium * combinedRate) / 100;
 
       // Display result
       document.getElementById('result').style.display = "block";
@@ -266,13 +263,13 @@
       </tr>`;
       
       breakdownHTML += `<tr>
-        <td colspan="2"><strong>Total Premium</strong></td>
-        <td colspan="2"><strong>$${totalPremium.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong></td>
+        <td colspan="2"><strong>Combined Rate</strong></td>
+        <td colspan="2"><strong>${combinedRate}%</strong></td>
       </tr>`;
 
       breakdownHTML += `<tr>
-        <td colspan="2"><strong>Combined Rate</strong></td>
-        <td colspan="2"><strong>${combinedRate}%</strong></td>
+        <td colspan="2"><strong>P&C Premium (Base)</strong></td>
+        <td colspan="2"><strong>$${pcPremium.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong></td>
       </tr>`;
       
       breakdownHTML += `<tr>
