@@ -1,390 +1,462 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Commission Calculator</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tier 1 Max Payout Bonus Calculator</title>
   <style>
+    :root {
+      --gray-dark: #8f8f8f;
+      --gray-mid: #a6a6a6;
+      --border: #222222;
+      --pink: #ff147a;
+      --white: #ffffff;
+      --black: #000000;
+      --cell-bg: #efefef;
+      --summary-bg: #f7f7f7;
+      --page-bg: #f3f3f3;
+      --focus-bg: #fff8cc;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      background: #fff;
-      font-family: Arial, sans-serif;
       margin: 0;
-      padding: 0;
-    }
-    .container {
-      max-width: 520px;
-      margin: 0 auto;
       padding: 24px;
-    }
-    h1 {
-      font-size: 1.3em;
-      text-align: center;
-      margin-bottom: 10px;
-      color: #c2185b;
-    }
-    label {
-      font-weight: bold;
-      display: block;
-      margin-top: 12px;
-    }
-    .input-row {
       display: flex;
-      gap: 12px;
+      justify-content: center;
+      background: var(--page-bg);
+      font-family: Arial, Helvetica, sans-serif;
+      color: #111111;
     }
-    .input-col {
-      flex: 1;
-    }
-    input, select {
+
+    .app {
       width: 100%;
-      padding: 8px;
-      margin-top: 4px;
-      margin-bottom: 8px;
-      font-size: 1em;
-      border-radius: 4px;
-      border: 1px solid #ccc;
-      background: #fff;
+      max-width: 760px;
+      background: var(--white);
+      border: 2px solid var(--border);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
     }
-    .button-row {
-      display: flex;
-      gap: 12px;
-      margin-top: 18px;
-      margin-bottom: 4px;
-    }
-    .side-btn {
-      background: #1976d2;
-      color: #fff;
-      font-size: 1em;
-      border: none;
-      padding: 10px;
-      width: 50%;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    .side-btn:hover {
-      background: #0d47a1;
-    }
-    .calc-btn {
-      background: #388e3c;
-      color: #fff;
-      font-size: 1em;
-      border: none;
-      padding: 10px;
-      width: 100%;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    .calc-btn:hover {
-      background: #2e7031;
-    }
-    .result {
-      background: #e8f5e9;
-      color: #388e3c;
-      font-size: 1.2em;
-      font-weight: bold;
+
+    .title {
+      padding: 10px 8px;
       text-align: center;
-      margin-top: 20px;
-      padding: 16px;
-      border-radius: 8px;
-      border: 2px solid #388e3c;
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--white);
+      background: var(--gray-dark);
+      border-bottom: 2px solid var(--border);
     }
-    .breakdown-box {
-      background: #f5f5f5;
-      color: #333;
-      font-size: 0.97em;
-      margin-top: 10px;
-      padding: 14px;
-      border-radius: 7px;
-      border: 1px solid #bbb;
-      overflow-x: auto;
-    }
-    .breakdown-table {
+
+    table {
       width: 100%;
       border-collapse: collapse;
+      table-layout: fixed;
     }
-    .breakdown-table th, .breakdown-table td {
-      border: 1px solid #ddd;
-      padding: 6px 8px;
+
+    th,
+    td {
+      padding: 8px 8px;
       text-align: center;
+      vertical-align: middle;
+      font-size: 22px;
+      line-height: 1.15;
+      border: 1px solid var(--border);
+      background: var(--cell-bg);
     }
-    .breakdown-table th {
-      background: #e0e0e0;
-      font-weight: bold;
+
+    thead th {
+      font-weight: 800;
+      color: var(--white);
+      background: var(--gray-mid);
     }
-    .breakdown-table tr:last-child td {
-      font-weight: bold;
-      background: #eee;
+
+    .col-sales {
+      width: 34%;
     }
-     .tier-text {
-      font-size: 1.07em;
-      color: #222;
-      font-weight: bold;
-      margin-bottom: 10px;
-      margin-top: 0;
+
+    .col-rate {
+      width: 26%;
+    }
+
+    .col-qty {
+      width: 16%;
+    }
+
+    .col-total {
+      width: 24%;
+    }
+
+    .pink {
+      color: var(--pink);
+      font-weight: 700;
+    }
+
+    .rate-link {
+      color: var(--pink);
+      font-weight: 700;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    .rate-link:hover {
+      filter: brightness(0.85);
+    }
+
+    .section {
+      padding-left: 18px;
+      text-align: left;
+      font-weight: 800;
+      color: var(--white);
+      background: var(--gray-dark) !important;
+    }
+
+    .qty-input,
+    .custom-total-input {
+      width: 100%;
+      padding: 6px 4px;
+      font-size: 22px;
+      font-weight: 700;
       text-align: center;
+      color: #111111;
+      background: var(--white);
+      border: none;
+      outline: none;
     }
-    .section-title {
-      font-size: 1.1em;
-      margin-top: 16px;
-      margin-bottom: 6px;
-      color: #333;
-      border-bottom: 1px solid #eee;
+
+    .qty-input:focus,
+    .custom-total-input:focus {
+      background: var(--focus-bg);
+    }
+
+    .money {
+      font-weight: 400;
+      color: var(--black);
+      background: var(--cell-bg);
+    }
+
+    .summary-label {
+      text-align: center;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--white);
+      background: var(--gray-dark) !important;
+    }
+
+    .summary-value {
+      font-weight: 800;
+      background: var(--summary-bg);
+    }
+
+    .hourly-label {
+      text-align: center;
+      font-weight: 700;
+      color: var(--pink);
+      background: var(--cell-bg);
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding: 16px;
+      background: #fafafa;
+      border-top: 2px solid var(--border);
+    }
+
+    button {
+      padding: 10px 14px;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--white);
+      background: var(--gray-dark);
+      border: 1px solid var(--border);
+      cursor: pointer;
+    }
+
+    button:hover {
+      filter: brightness(0.95);
+    }
+
+    .note {
+      padding: 0 16px 16px;
+      font-size: 14px;
+      color: #555555;
+    }
+
+    @media (max-width: 700px) {
+      body {
+        padding: 8px;
+      }
+
+      .title {
+        font-size: 20px;
+      }
+
+      th,
+      td {
+        padding: 6px 4px;
+        font-size: 14px;
+      }
+
+      .qty-input,
+      .custom-total-input {
+        padding: 6px 2px;
+        font-size: 14px;
+      }
+
+      button {
+        width: 100%;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Commission Calculator</h1>
+  <div class="app">
+    <div class="title">SALE RECAP</div>
 
-    <form id="premiumForm" autocomplete="off">
+    <table>
+      <thead>
+        <tr>
+          <th class="col-sales">Sales</th>
+          <th class="col-rate">125% Payout<br>with spiffs</th>
+          <th class="col-qty">QTY SOLD</th>
+          <th class="col-total">TOTAL<br>PAYOUT</th>
+        </tr>
+      </thead>
+      <tbody id="table-body">
+        <tr data-rate="5">
+          <td class="pink">Faststart Voice</td>
+          <td class="pink">
+            <a href="#" class="rate-link" data-message="Faststart Voice payout is $5.00 at 125% with spiffs.">$5.00</a>
+          </td>
+          <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
+          <td class="money row-total">$0.00</td>
+        </tr>
+        <tr data-rate="39">
+          <td class="pink">Beyond Voice</td>
+          <td class="pink">
+            <a href="#" class="rate-link" data-message="Beyond Voice payout is $39.00 at 125% with spiffs.">$39.00</a>
+          </td>
+          <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
+          <td class="money row-total">$0.00</td>
+        </tr>
+        <tr data-rate="29">
+          <td class="pink">Voice</td>
+          <td class="pink">
+            <a href="#" class="rate-link" data-message="Voice payout is $29.00 at 125% with spiffs.">$29.00</a>
+          </td>
+          <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
+          <td class="money row-total">$0.00</td>
+        </tr>
+        <tr data-rate="22">
+          <td class="pink">Essential Voice</td>
+          <td class="pink">
+            <a href="#" class="rate-link" data-message="Essential Voice payout is $22.00 at 125% with spiffs.">$22.00</a>
+          </td>
+          <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
+          <td class="money row-total">$0.00</td>
+        </tr>
+        <tr data-rate="1">
+          <td class="pink">Upgrades</td>
+          <td class="pink">
+            <a href="#" class="rate-link" data-message="Upgrades payout is $1.00 at 125% with spiffs.">$1.00</a>
+          </td>
+          <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
+          <td class="money row-total">$0.00</td>
+        </tr>
+        <tr data-rate="5">
+          <td class="pink">Tlife Assisted</td>
+          <td class="pink">
+            <a href="#" class="rate-link" data-message="Tlife Assisted payout is $5.00 at 125% with spiffs.">$5.00</a>
+          </td>
+          <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
+          <td class="money row-total">$0.00</td>
+        </tr>
+        <tr data-rate="20">
+          <td class="pink">HINT</td>
+          <td class="pink">
+            <a href="#" class="rate-link" data-message="HINT payout is $20.00 at 125% with spiffs.">$20.00</a>
+          </td>
+          <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
+          <td class="money row-total">$0.00</td>
+        </tr>
+        <tr data-rate="10">
+          <td class="pink">PREMIUM BTS</td>
+          <td class="pink">
+            <a href="#" class="rate-link" data-message="PREMIUM BTS payout is $10.00 at 125% with spiffs.">$10.00</a>
+          </td>
+          <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
+          <td class="money row-total">$0.00</td>
+        </tr>
+        <tr data-rate="5">
+          <td class="pink">Sync Up</td>
+          <td class="pink">
+            <a href="#" class="rate-link" data-message="Sync Up payout is $5.00 at 125% with spiffs.">$5.00</a>
+          </td>
+          <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
+          <td class="money row-total">$0.00</td>
+        </tr>
 
-      <div class="section-title"></div>
+        <tr>
+          <td class="section" colspan="4">Feature Sales</td>
+        </tr>
 
-      <div class="input-row">
-        <div class="input-col">
-          <label for="pcPremium">P&C Premium</label>
-          <input type="number" id="pcPremium" required min="0" step="0.01" placeholder="e.g. 25000">
-        </div>
-        <div class="input-col">
-          <label for="lhPremium">Life & Health Premium</label>
-          <input type="number" id="lhPremium" required min="0" step="0.01" placeholder="e.g. 300">
-        </div>
-      </div>
+        <tr data-rate="25">
+          <td class="pink">VISA App</td>
+          <td class="pink">
+            <a href="#" class="rate-link" data-message="VISA App payout is $25.00 at 125% with spiffs.">$25.00</a>
+          </td>
+          <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
+          <td class="money row-total">$0.00</td>
+        </tr>
+        <tr data-rate="13">
+          <td class="pink">P360</td>
+          <td class="pink">
+            <a href="#" class="rate-link" data-message="P360 payout is $13.00 at 125% with spiffs.">$13.00</a>
+          </td>
+          <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
+          <td class="money row-total">$0.00</td>
+        </tr>
+        <tr data-rate="15">
+          <td class="pink">BYOD P360</td>
+          <td class="pink">
+            <a href="#" class="rate-link" data-message="BYOD P360 payout is $15.00 at 125% with spiffs.">$15.00</a>
+          </td>
+          <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
+          <td class="money row-total">$0.00</td>
+        </tr>
+        <tr data-rate="8">
+          <td class="pink">Hometech</td>
+          <td class="pink">
+            <a href="#" class="rate-link" data-message="Hometech payout is $8.00 at 125% with spiffs.">$8.00</a>
+          </td>
+          <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
+          <td class="money row-total">$0.00</td>
+        </tr>
+        <tr data-rate="2">
+          <td class="pink">More LINE Mig</td>
+          <td class="pink">
+            <a href="#" class="rate-link" data-message="More LINE Mig payout is $2.00 at 125% with spiffs.">$2.00</a>
+          </td>
+          <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
+          <td class="money row-total">$0.00</td>
+        </tr>
+        <tr data-rate="4">
+          <td class="pink">Beyond LINE Mig</td>
+          <td class="pink">
+            <a href="#" class="rate-link" data-message="Beyond LINE Mig payout is $4.00 at 125% with spiffs.">$4.00</a>
+          </td>
+          <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
+          <td class="money row-total">$0.00</td>
+        </tr>
+        <tr data-custom="true">
+          <td class="pink">OEM Spiffs</td>
+          <td class="pink">
+            <a href="#" class="rate-link" data-message="OEM Spiffs payout varies based on entered total spiff amount.">Varies</a>
+          </td>
+          <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
+          <td class="money">
+            <input
+              class="custom-total-input"
+              type="number"
+              min="0"
+              step="0.01"
+              value="0"
+              aria-label="OEM Spiffs total payout"
+            />
+          </td>
+        </tr>
 
-      <div class="input-row">
-        <div class="input-col">
-          <label for="premiumChargeback">Premium Chargeback</label>
-          <input type="number" id="premiumChargeback" min="0" step="0.01" placeholder="e.g. 500">
-        </div>
-        <div class="input-col">
-          <label for="tenure">Tenure</label>
-          <select id="tenure">
-            <option value="6+">6+ Months</option>
-            <option value="4-6">4-6 Months</option>
-            <option value="1-3">1-3 Months</option>
-          </select>
-        </div>
-      </div>
+        <tr>
+          <td class="summary-label" colspan="3">TOTAL POTENTIAL COMMISSION</td>
+          <td class="summary-value" id="grand-total">$0.00</td>
+        </tr>
+        <tr>
+          <td class="hourly-label" colspan="3">Additional Hourly (8hr day)</td>
+          <td class="summary-value" id="additional-hourly">$0.00</td>
+        </tr>
+      </tbody>
+    </table>
 
-      <div class="button-row">
-        <button type="button" class="side-btn" onclick="resetForm()">Reset</button>
-        <button type="button" class="side-btn" onclick="clearForm()">Clear</button>
-      </div>
-      <button type="button" class="calc-btn" onclick="calculateCommission()">Calculate</button>
-    </form>
+    <div class="controls">
+      <button type="button" id="clear-btn">Clear All</button>
+    </div>
 
-    <div id="result" class="result" style="display:none;"></div>
-    <div id="breakdown" class="breakdown-box" style="display:none;"></div>
+    <div class="note">
+      Enter quantities for each item. OEM Spiffs can be entered directly as a payout amount.
+      Additional Hourly is automatically calculated as total commission divided by 8.
+    </div>
   </div>
 
   <script>
-    // P&C Premium Tiers
-    const pcTiers = [
-      {min: 0, max: 9999.99, percent: 0},
-      {min: 10000, max: 19999.99, percent: 1},
-      {min: 20000, max: 29999.99, percent: 2},
-      {min: 30000, max: 39999.99, percent: 3},
-      {min: 40000, max: 49999.99, percent: 4},
-      {min: 50000, max: Infinity, percent: 5}  // 5% for $50k+
-    ];
+    function formatMoney(value) {
+      return "$" + Number(value).toFixed(2);
+    }
 
-    // Life & Health Premium Tiers
-    const lhTiers = [
-      {min: 0, max: 99.99, percent: 0},
-      {min: 100, max: 199.99, percent: 1},
-      {min: 200, max: 299.99, percent: 2},
-      {min: 300, max: 399.99, percent: 3},
-      {min: 400, max: 499.99, percent: 4},
-      {min: 500, max: Infinity, percent: 5}  // 5% for $500+
-    ];
+    function calculateTotals() {
+      const standardRows = document.querySelectorAll("#table-body tr[data-rate]");
+      const customRow = document.querySelector('#table-body tr[data-custom="true"]');
+      let grandTotal = 0;
 
-    // Initialize on page load
-    document.addEventListener('DOMContentLoaded', function() {
-      // Load saved values from localStorage
-      loadFromStorage();
-      
-      // Add event listeners to save on input change
-      document.getElementById('pcPremium').addEventListener('input', saveToStorage);
-      document.getElementById('lhPremium').addEventListener('input', saveToStorage);
-      document.getElementById('premiumChargeback').addEventListener('input', saveToStorage);
-      document.getElementById('tenure').addEventListener('change', saveToStorage);
+      standardRows.forEach((row) => {
+        const rate = parseFloat(row.dataset.rate) || 0;
+        const qtyInput = row.querySelector(".qty-input");
+        const rowTotalCell = row.querySelector(".row-total");
+        const qty = parseFloat(qtyInput.value) || 0;
+        const total = rate * qty;
+
+        rowTotalCell.textContent = formatMoney(total);
+        grandTotal += total;
+      });
+
+      if (customRow) {
+        const customTotalInput = customRow.querySelector(".custom-total-input");
+        const customValue = parseFloat(customTotalInput.value) || 0;
+        grandTotal += customValue;
+      }
+
+      const additionalHourly = grandTotal / 8;
+
+      document.getElementById("grand-total").textContent = formatMoney(grandTotal);
+      document.getElementById("additional-hourly").textContent = formatMoney(additionalHourly);
+    }
+
+    function clearAll() {
+      document.querySelectorAll(".qty-input, .custom-total-input").forEach((input) => {
+        input.value = 0;
+      });
+
+      document.querySelectorAll(".row-total").forEach((cell) => {
+        cell.textContent = "$0.00";
+      });
+
+      document.getElementById("grand-total").textContent = "$0.00";
+      document.getElementById("additional-hourly").textContent = "$0.00";
+    }
+
+    document.querySelectorAll(".qty-input, .custom-total-input").forEach((input) => {
+      input.addEventListener("input", calculateTotals);
     });
 
-    // Save input values to localStorage
-    function saveToStorage() {
-      const pcPremium = document.getElementById('pcPremium').value;
-      const lhPremium = document.getElementById('lhPremium').value;
-      const premiumChargeback = document.getElementById('premiumChargeback').value;
-      const tenure = document.getElementById('tenure').value;
-      
-      localStorage.setItem('pcPremium', pcPremium);
-      localStorage.setItem('lhPremium', lhPremium);
-      localStorage.setItem('premiumChargeback', premiumChargeback);
-      localStorage.setItem('tenure', tenure);
-    }
+    document.getElementById("clear-btn").addEventListener("click", () => {
+      clearAll();
+      calculateTotals();
+    });
 
-    // Load input values from localStorage
-    function loadFromStorage() {
-      const pcPremium = localStorage.getItem('pcPremium');
-      const lhPremium = localStorage.getItem('lhPremium');
-      const premiumChargeback = localStorage.getItem('premiumChargeback');
-      const tenure = localStorage.getItem('tenure');
-      
-      if (pcPremium !== null) document.getElementById('pcPremium').value = pcPremium;
-      if (lhPremium !== null) document.getElementById('lhPremium').value = lhPremium;
-      if (premiumChargeback !== null) document.getElementById('premiumChargeback').value = premiumChargeback;
-      if (tenure !== null) document.getElementById('tenure').value = tenure;
-    }
+    document.querySelectorAll(".rate-link").forEach((link) => {
+      link.addEventListener("click", (event) => {
+        event.preventDefault();
+        const message = link.dataset.message || "No details available.";
+        alert(message);
+      });
+    });
 
-    function getTierPercent(amount, tiers) {
-      for (let i = 0; i < tiers.length; i++) {
-        if (amount >= tiers[i].min && amount <= tiers[i].max) {
-          return tiers[i].percent;
-        }
-      }
-      return 0; // Default to 0% if no tier matches (should not happen with Infinity in top tier)
-    }
-
-    function getTierDescription(amount, tiers) {
-      for (let i = 0; i < tiers.length; i++) {
-        if (amount >= tiers[i].min && amount <= tiers[i].max) {
-          const minFormatted = tiers[i].min.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-          if (tiers[i].max === Infinity) {
-            return `$${minFormatted}+`;
-          }
-          const maxFormatted = tiers[i].max.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-          return `$${minFormatted} - $${maxFormatted}`;
-        }
-      }
-      return "No Tier Found"; // Default (should not happen with Infinity in top tier)
-    }
-
-    // Reset button - clears ALL inputs
-    function resetForm() {
-      document.getElementById('pcPremium').value = '';
-      document.getElementById('lhPremium').value = '';
-      document.getElementById('premiumChargeback').value = '';
-      document.getElementById('tenure').value = '6+';  // Reset to default
-      document.getElementById('result').style.display = "none";
-      document.getElementById('breakdown').style.display = "none";
-      
-      // Clear localStorage
-      localStorage.removeItem('pcPremium');
-      localStorage.removeItem('lhPremium');
-      localStorage.removeItem('premiumChargeback');
-      localStorage.removeItem('tenure');
-    }
-
-    // Clear button - only clears P&C Premium and Life & Health Premium
-    function clearForm() {
-      document.getElementById('pcPremium').value = '';
-      document.getElementById('lhPremium').value = '';
-      document.getElementById('result').style.display = "none";
-      document.getElementById('breakdown').style.display = "none";
-      
-      // Update localStorage
-      localStorage.removeItem('pcPremium');
-      localStorage.removeItem('lhPremium');
-    }
-
-    function calculateCommission() {
-      // Get input values
-      const pcPremium = parseFloat(document.getElementById('pcPremium').value) || 0;
-      const lhPremium = parseFloat(document.getElementById('lhPremium').value) || 0;
-      const premiumChargeback = parseFloat(document.getElementById('premiumChargeback').value) || 0;
-      const tenure = document.getElementById('tenure').value;
-
-      // Calculate adjusted premium (P&C Premium - Premium Chargeback)
-      // Ensure adjusted premium is not negative
-      const adjustedPremium = Math.max(0, pcPremium - premiumChargeback);
-
-      // Get tier percentages for each category
-      let pcPercent;
-      
-      // Apply tenure-based logic for P&C rate
-      if (tenure === '1-3') {
-        // 1-3 Months: automatically get 5% from P&C tier no matter the amount
-        pcPercent = 5;
-      } else if (tenure === '4-6') {
-        // 4-6 Months: get 5% once they hit $20,000 in P&C premium
-        pcPercent = pcPremium >= 20000 ? 5 : getTierPercent(pcPremium, pcTiers);
-      } else {
-        // 6+ Months: original tier calculation
-        pcPercent = getTierPercent(pcPremium, pcTiers);
-      }
-      
-      const lhPercent = getTierPercent(lhPremium, lhTiers);
-
-      // Calculate combined rate (sum of individual rates)
-      const combinedRate = pcPercent + lhPercent;
-
-      // Get tier descriptions
-      const pcTierDesc = getTierDescription(pcPremium, pcTiers);
-      const lhTierDesc = getTierDescription(lhPremium, lhTiers);
-
-      // Calculate total commission using combined rate on adjusted premium
-      const totalCommission = (adjustedPremium * combinedRate) / 100;
-
-      // Display result
-      document.getElementById('result').style.display = "block";
-      document.getElementById('result').innerHTML = `
-        <div>Total Commission:</div>
-        <div style="font-size:2em;">$${totalCommission.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
-      `;
-
-      // Breakdown table
-      let breakdownHTML = `<table class="breakdown-table"><thead><tr>
-        <th>Category</th>
-        <th>Premium</th>
-        <th>Tier</th>
-        <th>Rate</th>
-      </tr></thead><tbody>`;
-      
-      breakdownHTML += `<tr>
-        <td>P&C</td>
-        <td>$${pcPremium.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-        <td>${pcTierDesc}</td>
-        <td>${pcPercent}%</td>
-      </tr>`;
-      
-      breakdownHTML += `<tr>
-        <td>Life & Health</td>
-        <td>$${lhPremium.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-        <td>${lhTierDesc}</td>
-        <td>${lhPercent}%</td>
-      </tr>`;
-      
-      breakdownHTML += `<tr>
-        <td colspan="2"><strong>Combined Rate</strong></td>
-        <td colspan="2"><strong>${combinedRate}%</strong></td>
-      </tr>`;
-
-      breakdownHTML += `<tr>
-        <td colspan="2"><strong>P&C Premium (Base)</strong></td>
-        <td colspan="2"><strong>$${pcPremium.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong></td>
-      </tr>`;
-
-      breakdownHTML += `<tr>
-        <td colspan="2"><strong>Premium Chargeback</strong></td>
-        <td colspan="2"><strong>$${premiumChargeback.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong></td>
-      </tr>`;
-
-      breakdownHTML += `<tr>
-        <td colspan="2"><strong>Adjusted Premium</strong></td>
-        <td colspan="2"><strong>$${adjustedPremium.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong></td>
-      </tr>`;
-      
-      breakdownHTML += `<tr>
-        <td colspan="3"><strong>TOTAL COMMISSION</strong></td>
-        <td><strong>$${totalCommission.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong></td>
-      </tr>`;
-      
-      breakdownHTML += `</tbody></table>`;
-      
-      document.getElementById('breakdown').style.display = "block";
-      document.getElementById('breakdown').innerHTML = breakdownHTML;
-    }
+    calculateTotals();
   </script>
 </body>
 </html>
