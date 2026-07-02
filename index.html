@@ -42,7 +42,7 @@
       box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
     }
 
-    /* Top auth bar */
+    /* Top bar (always at top) */
     .top-auth-bar {
       padding: 10px 12px;
       display: flex;
@@ -279,7 +279,7 @@
 </head>
 <body>
   <div class="app">
-    <!-- TOP LOGIN INFO + LOGOUT -->
+    <!-- LOGIN/LOGOUT AREA MOVED TO VERY TOP -->
     <div class="top-auth-bar">
       <div class="auth-left">
         Access:
@@ -483,10 +483,10 @@
 
   <script>
     // =========================
-    // LOGIN CONFIG (EDIT LIST)
+    // LOGIN CONFIG (EDIT THIS)
     // =========================
     const allowedEmails = [
-      "manager1@company.com",
+      "kevin.starke@connectivitysource.net",
       "manager2@company.com",
       "employee1@company.com"
     ].map((e) => e.trim().toLowerCase());
@@ -528,8 +528,6 @@
       logoutActions.classList.remove("hidden");
       lockedOverlay.classList.add("hidden");
       calculatorContent.classList.remove("hidden");
-      setMessage("Access granted.", "success");
-      calculateTotals();
     }
 
     function showUnauthorizedUI() {
@@ -539,6 +537,20 @@
       logoutActions.classList.add("hidden");
       lockedOverlay.classList.remove("hidden");
       calculatorContent.classList.add("hidden");
+    }
+
+    function login(email) {
+      localStorage.setItem("authorizedUserEmail", email);
+      setMessage("Access granted.", "success");
+      showAuthorizedUI(email);
+      calculateTotals();
+    }
+
+    function logout() {
+      localStorage.removeItem("authorizedUserEmail");
+      emailInput.value = "";
+      setMessage("");
+      showUnauthorizedUI();
     }
 
     function handleLogin() {
@@ -559,16 +571,7 @@
         return;
       }
 
-      // IMPORTANT CHANGE:
-      // No localStorage/sessionStorage persistence.
-      // User must log in again after any page reload.
-      showAuthorizedUI(email);
-    }
-
-    function handleLogout() {
-      emailInput.value = "";
-      setMessage("");
-      showUnauthorizedUI();
+      login(email);
     }
 
     // =========================
@@ -619,7 +622,7 @@
     }
 
     // =========================
-    // EVENTS
+    // EVENT LISTENERS
     // =========================
     loginBtn.addEventListener("click", handleLogin);
 
@@ -629,7 +632,7 @@
       }
     });
 
-    logoutBtn.addEventListener("click", handleLogout);
+    logoutBtn.addEventListener("click", logout);
 
     document.querySelectorAll(".qty-input, .custom-total-input").forEach((input) => {
       input.addEventListener("input", calculateTotals);
@@ -649,12 +652,17 @@
     });
 
     // =========================
-    // INITIAL STATE
+    // INITIALIZE
     // =========================
-    // Always require login on each page load:
-    showUnauthorizedUI();
-    setMessage("");
     calculateTotals();
+
+    const savedEmail = normalizeEmail(localStorage.getItem("authorizedUserEmail"));
+    if (savedEmail && allowedEmails.includes(savedEmail)) {
+      showAuthorizedUI(savedEmail);
+      setMessage("");
+    } else {
+      showUnauthorizedUI();
+    }
   </script>
 </body>
 </html>
