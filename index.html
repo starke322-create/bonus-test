@@ -42,6 +42,7 @@
       box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
     }
 
+    /* Top bar (always at top) */
     .top-auth-bar {
       padding: 10px 12px;
       display: flex;
@@ -278,6 +279,7 @@
 </head>
 <body>
   <div class="app">
+    <!-- LOGIN/LOGOUT AREA MOVED TO VERY TOP -->
     <div class="top-auth-bar">
       <div class="auth-left">
         Access:
@@ -481,20 +483,12 @@
 
   <script>
     // =========================
-    // LOGIN CONFIG (UPDATED)
+    // LOGIN CONFIG (EDIT THIS)
     // =========================
     const allowedEmails = [
-      "montoya@connectivitysource.net",
-      "beau.cumbie@connectivitysource.net",
-      "belen@connectivitysource.net",
-      "william.clark@connectivitysource.net",
-      "jeanelle.pazos@connectivitysource.net",
-      "joseph.mckee@connectivitysource.net",
-      "nicolas.odell@connectivitysource.net",
-      "steven@connectivitysource.net",
-      "erica@connectivitysource.net",
-      "kevin.starke@connectivitysource.net",
-      "gilberto.castillo@connectivitysource.net"
+      "manager1@company.com",
+      "manager2@company.com",
+      "employee1@company.com"
     ].map((e) => e.trim().toLowerCase());
 
     // =========================
