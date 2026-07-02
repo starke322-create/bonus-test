@@ -656,6 +656,9 @@
     // =========================
     calculateTotals();
 
+    // Force logout on every page load/refresh
+    localStorage.removeItem("authorizedUserEmail");
+
     const savedEmail = normalizeEmail(localStorage.getItem("authorizedUserEmail"));
     if (savedEmail && allowedEmails.includes(savedEmail)) {
       showAuthorizedUI(savedEmail);
