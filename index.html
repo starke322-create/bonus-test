@@ -103,16 +103,6 @@
       border-bottom: 2px solid var(--border);
     }
 
-    .locked-overlay {
-      padding: 22px 16px;
-      text-align: center;
-      font-size: 15px;
-      font-weight: 700;
-      border-bottom: 2px solid var(--border);
-      background: #fffdf5;
-      color: #333;
-    }
-
     .hidden { display: none !important; }
 
     table {
@@ -142,10 +132,7 @@
     .col-qty { width: 16%; }
     .col-total { width: 24%; }
 
-    .pink {
-      color: var(--pink);
-      font-weight: 700;
-    }
+    .pink { color: var(--pink); font-weight: 700; }
 
     .rate-link {
       color: var(--pink);
@@ -162,8 +149,7 @@
       background: var(--gray-dark) !important;
     }
 
-    .qty-input,
-    .custom-total-input {
+    .qty-input, .custom-total-input {
       width: 100%;
       padding: 6px 4px;
       font-size: 22px;
@@ -175,8 +161,7 @@
       outline: none;
     }
 
-    .qty-input:focus,
-    .custom-total-input:focus {
+    .qty-input:focus, .custom-total-input:focus {
       background: var(--focus-bg);
     }
 
@@ -252,10 +237,6 @@
 
     <div class="title">SALE RECAP</div>
 
-    <div id="locked-overlay" class="locked-overlay">
-      Please log in with an approved email to access the bonus calculator.
-    </div>
-
     <div id="calculator-content" class="hidden">
       <table>
         <thead>
@@ -276,9 +257,7 @@
           <tr data-rate="20"><td class="pink">HINT</td><td class="pink"><a href="#" class="rate-link" data-message="125% bts payout is $8 + Premium BTS Spiff payout of $2 if store ends month over 110% to BTS target + HINT spiff payout of $10.">$20.00</a></td><td><input class="qty-input" type="number" min="0" step="1" value="0" /></td><td class="money row-total">$0.00</td></tr>
           <tr data-rate="10"><td class="pink">PREMIUM BTS</td><td class="pink"><a href="#" class="rate-link" data-message="125% bts payout is $8 + Premium BTS Spiff payout of $2 if store ends month over 110% BTS.">$10.00</a></td><td><input class="qty-input" type="number" min="0" step="1" value="0" /></td><td class="money row-total">$0.00</td></tr>
           <tr data-rate="5"><td class="pink">Sync Up</td><td class="pink"><a href="#" class="rate-link" data-message="125% bts payout is $8 - below $14.99 MRC spiff of -$3.">$5.00</a></td><td><input class="qty-input" type="number" min="0" step="1" value="0" /></td><td class="money row-total">$0.00</td></tr>
-
           <tr><td class="section" colspan="4">Feature Sales</td></tr>
-
           <tr data-rate="25"><td class="pink">VISA App</td><td class="pink"><a href="#" class="rate-link" data-message="VISA application spiff is $25 for all applications if they are denied or if they are approved AND accept.">$25.00</a></td><td><input class="qty-input" type="number" min="0" step="1" value="0" /></td><td class="money row-total">$0.00</td></tr>
           <tr data-rate="13"><td class="pink">P360</td><td class="pink"><a href="#" class="rate-link" data-message="Base P360 spiff payout is $8 + $5 spiff if store attachment is >40%. NOTE: (P360 Device Attach % + P360 BYOD Attach % + P360 Upgrade Attach %) / 3">$13.00</a></td><td><input class="qty-input" type="number" min="0" step="1" value="0" /></td><td class="money row-total">$0.00</td></tr>
           <tr data-rate="15"><td class="pink">BYOD P360</td><td class="pink"><a href="#" class="rate-link" data-message="Base P360 spiff payout is $8 + $5 spiff if store attachment is >40% + $2.00 additional BYOD spiff. NOTE: (P360 Device Attach % + P360 BYOD Attach % + P360 Upgrade Attach %) / 3">$15.00</a></td><td><input class="qty-input" type="number" min="0" step="1" value="0" /></td><td class="money row-total">$0.00</td></tr>
@@ -286,7 +265,6 @@
           <tr data-rate="2"><td class="pink">More LINE Mig</td><td class="pink"><a href="#" class="rate-link" data-message="Migration to Experience More Per Line.">$2.00</a></td><td><input class="qty-input" type="number" min="0" step="1" value="0" /></td><td class="money row-total">$0.00</td></tr>
           <tr data-rate="4"><td class="pink">Beyond LINE Mig</td><td class="pink"><a href="#" class="rate-link" data-message="Migration to Experience Beyond Or Better Value Per Line.">$4.00</a></td><td><input class="qty-input" type="number" min="0" step="1" value="0" /></td><td class="money row-total">$0.00</td></tr>
           <tr data-custom="true"><td class="pink">OEM Spiffs</td><td class="pink"><a href="#" class="rate-link" data-message="3/15/26-6/30/26 ✓ GOOGLE PIXEL 10A EARN $5 ✓ GOOGLE PIXEL 10 EARN $25 ✓ GOOGLE PIXEL 10 PRO EARN $30 ✓ GOOGLE PIXEL 10 PRO XL EARN $35.">Varies</a></td><td><input class="qty-input" type="number" min="0" step="1" value="0" /></td><td class="money"><input class="custom-total-input" type="number" min="0" step="0.01" value="0" aria-label="OEM Spiffs total payout" /></td></tr>
-
           <tr><td class="summary-label" colspan="3">TOTAL POTENTIAL COMMISSION</td><td class="summary-value" id="grand-total">$0.00</td></tr>
           <tr><td class="hourly-label" colspan="3">Additional Hourly (8hr day)</td><td class="summary-value" id="additional-hourly">$0.00</td></tr>
         </tbody>
@@ -316,7 +294,7 @@
       "erica@connectivitysource.net",
       "kevin.starke@connectivitysource.net",
       "gilberto.castillo@connectivitysource.net"
-    ];
+    ].map(e => e.toLowerCase());
 
     const authState = document.getElementById("auth-state");
     const authEmail = document.getElementById("auth-email");
@@ -324,13 +302,9 @@
     const loginActions = document.getElementById("login-actions");
     const logoutActions = document.getElementById("logout-actions");
     const emailInput = document.getElementById("email-input");
-    const lockedOverlay = document.getElementById("locked-overlay");
     const calculatorContent = document.getElementById("calculator-content");
 
-    function normalizeEmail(email) {
-      return String(email || "").trim().toLowerCase();
-    }
-
+    function normalizeEmail(email) { return String(email || "").trim().toLowerCase(); }
     function setMessage(text, type = "") {
       authMessage.textContent = text;
       authMessage.className = "auth-message";
@@ -342,7 +316,6 @@
       authEmail.textContent = ` ${email}`;
       loginActions.classList.add("hidden");
       logoutActions.classList.remove("hidden");
-      lockedOverlay.classList.add("hidden");
       calculatorContent.classList.remove("hidden");
     }
 
@@ -351,13 +324,10 @@
       authEmail.textContent = "";
       loginActions.classList.remove("hidden");
       logoutActions.classList.add("hidden");
-      lockedOverlay.classList.remove("hidden");
       calculatorContent.classList.add("hidden");
     }
 
-    function formatMoney(value) {
-      return "$" + Number(value).toFixed(2);
-    }
+    function formatMoney(v) { return "$" + Number(v).toFixed(2); }
 
     function calculateTotals() {
       const standardRows = document.querySelectorAll("#table-body tr[data-rate]");
@@ -373,8 +343,7 @@
       });
 
       if (customRow) {
-        const customValue = parseFloat(customRow.querySelector(".custom-total-input").value) || 0;
-        grandTotal += customValue;
+        grandTotal += parseFloat(customRow.querySelector(".custom-total-input").value) || 0;
       }
 
       document.getElementById("grand-total").textContent = formatMoney(grandTotal);
@@ -382,8 +351,8 @@
     }
 
     function clearAll() {
-      document.querySelectorAll(".qty-input, .custom-total-input").forEach((input) => input.value = 0);
-      document.querySelectorAll(".row-total").forEach((cell) => cell.textContent = "$0.00");
+      document.querySelectorAll(".qty-input, .custom-total-input").forEach(i => i.value = 0);
+      document.querySelectorAll(".row-total").forEach(c => c.textContent = "$0.00");
       document.getElementById("grand-total").textContent = "$0.00";
       document.getElementById("additional-hourly").textContent = "$0.00";
     }
@@ -392,7 +361,6 @@
       const email = normalizeEmail(emailInput.value);
       if (!email || !email.includes("@")) return setMessage("Please enter a valid email address.", "error");
       if (!allowedEmails.includes(email)) return setMessage("Access denied. Your email is not authorized.", "error");
-
       setMessage("Access granted.", "success");
       showAuthorizedUI(email);
       calculateTotals();
@@ -405,8 +373,8 @@
     }
 
     document.getElementById("login-btn").addEventListener("click", handleLogin);
-    emailInput.addEventListener("keydown", (e) => { if (e.key === "Enter") handleLogin(); });
     document.getElementById("logout-btn").addEventListener("click", logout);
+    emailInput.addEventListener("keydown", (e) => { if (e.key === "Enter") handleLogin(); });
 
     document.querySelectorAll(".qty-input, .custom-total-input").forEach((input) => {
       input.addEventListener("input", calculateTotals);
@@ -418,13 +386,12 @@
     });
 
     document.querySelectorAll(".rate-link").forEach((link) => {
-      link.addEventListener("click", (event) => {
-        event.preventDefault();
+      link.addEventListener("click", (e) => {
+        e.preventDefault();
         alert(link.dataset.message || "No details available.");
       });
     });
 
-    // Always start logged out on load/refresh
     showUnauthorizedUI();
     calculateTotals();
   </script>
