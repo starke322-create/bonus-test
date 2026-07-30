@@ -105,7 +105,9 @@
     }
 
     .qty-input,
-    .performance-input {
+    .performance-input,
+    .oem-current-total,
+    .oem-max-total {
       width: 100%;
       padding: 6px 4px;
       font-size: 18px;
@@ -118,7 +120,9 @@
     }
 
     .qty-input:focus,
-    .performance-input:focus {
+    .performance-input:focus,
+    .oem-current-total:focus,
+    .oem-max-total:focus {
       background: var(--focus-bg);
     }
 
@@ -207,7 +211,7 @@
         font-size: 12px;
       }
 
-      .qty-input, .performance-input {
+      .qty-input, .performance-input, .oem-current-total, .oem-max-total {
         font-size: 12px;
         padding: 5px 2px;
       }
@@ -391,11 +395,11 @@
           <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
           <td class="current-payout-cell">Varies</td>
           <td class="money">
-            <input class="oem-current-total" type="number" min="0" step="0.01" value="0" style="width:100%;padding:6px 4px;font-size:16px;text-align:center;border:none;background:#fff;" />
+            <input class="oem-current-total" type="number" min="0" step="0.01" value="0" />
           </td>
           <td class="pink">Varies</td>
           <td class="money">
-            <input class="oem-max-total" type="number" min="0" step="0.01" value="0" style="width:100%;padding:6px 4px;font-size:16px;text-align:center;border:none;background:#fff;" />
+            <input class="oem-max-total" type="number" min="0" step="0.01" value="0" />
           </td>
         </tr>
 
@@ -428,6 +432,8 @@
   </div>
 
   <script>
+    const STORAGE_KEY = "unofficial_bonus_estimate_saved_data_v1";
+
     function formatMoney(value) {
       return "$" + Number(value).toFixed(2);
     }
@@ -510,6 +516,50 @@
       }
     }
 
+    function getAllInputsData() {
+      return {
+        perfVoice: document.getElementById("perf-voice").value,
+        perfBts: document.getElementById("perf-bts").value,
+        perfP360: document.getElementById("perf-p360").value,
+        perfTlife: document.getElementById("perf-tlife").value,
+        qtyValues: Array.from(document.querySelectorAll(".qty-input")).map((input) => input.value),
+        oemCurrent: document.querySelector(".oem-current-total")?.value || "0",
+        oemMax: document.querySelector(".oem-max-total")?.value || "0"
+      };
+    }
+
+    function saveData() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(getAllInputsData()));
+    }
+
+    function loadSavedData() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+
+      try {
+        const data = JSON.parse(raw);
+
+        if (data.perfVoice !== undefined) document.getElementById("perf-voice").value = data.perfVoice;
+        if (data.perfBts !== undefined) document.getElementById("perf-bts").value = data.perfBts;
+        if (data.perfP360 !== undefined) document.getElementById("perf-p360").value = data.perfP360;
+        if (data.perfTlife !== undefined) document.getElementById("perf-tlife").value = data.perfTlife;
+
+        const qtyInputs = document.querySelectorAll(".qty-input");
+        if (Array.isArray(data.qtyValues)) {
+          qtyInputs.forEach((input, idx) => {
+            if (data.qtyValues[idx] !== undefined) input.value = data.qtyValues[idx];
+          });
+        }
+
+        const oemCurrentInput = document.querySelector(".oem-current-total");
+        const oemMaxInput = document.querySelector(".oem-max-total");
+        if (oemCurrentInput && data.oemCurrent !== undefined) oemCurrentInput.value = data.oemCurrent;
+        if (oemMaxInput && data.oemMax !== undefined) oemMaxInput.value = data.oemMax;
+      } catch (e) {
+        console.error("Could not parse saved data:", e);
+      }
+    }
+
     function calculateTotals() {
       const perf = {
         voice: parseFloat(document.getElementById("perf-voice").value) || 0,
@@ -557,20 +607,27 @@
       document.getElementById("max-hourly").textContent = formatMoney(maxHourly);
     }
 
+    function handleInputChange() {
+      calculateTotals();
+      saveData();
+    }
+
     function clearAll() {
       document.querySelectorAll(".qty-input, .performance-input, .oem-current-total, .oem-max-total").forEach((input) => {
         input.value = 0;
       });
 
+      localStorage.removeItem(STORAGE_KEY);
       calculateTotals();
     }
 
     document.querySelectorAll(".qty-input, .performance-input, .oem-current-total, .oem-max-total").forEach((input) => {
-      input.addEventListener("input", calculateTotals);
+      input.addEventListener("input", handleInputChange);
     });
 
     document.getElementById("clear-btn").addEventListener("click", clearAll);
 
+    loadSavedData();
     calculateTotals();
   </script>
 </body>
