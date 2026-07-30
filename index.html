@@ -428,79 +428,88 @@
   </div>
 
   <script>
-    function formatMoney(value) {
-      return "$" + Number(value).toFixed(2);
-    }
+    <script>
+  function formatMoney(value) {
+    return "$" + Number(value).toFixed(2);
+  }
 
-    function getVoiceDeduction(voicePerf) {
-      if (voicePerf < 80) return 15;
-      if (voicePerf < 100) return 12.5;
-      if (voicePerf < 112.5) return 9;
-      if (voicePerf < 125) return 5;
-      return 0;
-    }
+  function getVoiceDeduction(voicePerf) {
+    if (voicePerf < 80) return 15;
+    if (voicePerf < 100) return 12.5;
+    if (voicePerf < 112.5) return 9;
+    if (voicePerf < 125) return 5;
+    return 0;
+  }
 
-    function getBtsDeductionForPremiumHint(btsPerf) {
-      if (btsPerf < 80) return 8;
-      if (btsPerf < 100) return 6;
-      if (btsPerf < 110) return 4;
-      if (btsPerf < 125) return 2;
-      return 0;
-    }
+  // For PREMIUM BTS only
+  function getBtsDeductionForPremium(btsPerf) {
+    if (btsPerf < 80) return 8;
+    if (btsPerf < 100) return 6;
+    if (btsPerf < 110) return 4;
+    if (btsPerf < 125) return 2;
+    return 0;
+  }
 
-    function getBtsDeductionForSyncUp(btsPerf) {
-      if (btsPerf < 80) return 5;
-      if (btsPerf < 100) return 4;
-      if (btsPerf < 125) return 2;
-      return 0;
-    }
+  // NEW: For HINT only
+  function getBtsDeductionForHint(btsPerf) {
+    if (btsPerf < 80) return 18;
+    if (btsPerf < 100) return 16;
+    if (btsPerf < 110) return 14;
+    if (btsPerf < 125) return 2;
+    return 0;
+  }
 
-    function getP360Deduction(p360Perf) {
-      if (p360Perf < 35) return 10;
-      if (p360Perf < 40) return 5;
-      return 0;
-    }
+  function getBtsDeductionForSyncUp(btsPerf) {
+    if (btsPerf < 80) return 5;
+    if (btsPerf < 100) return 4;
+    if (btsPerf < 125) return 2;
+    return 0;
+  }
 
-    function getCurrentPayout(item, maxRate, perf) {
-      const voiceDeduction = getVoiceDeduction(perf.voice);
-      const btsDeductionPH = getBtsDeductionForPremiumHint(perf.bts);
-      const btsDeductionSync = getBtsDeductionForSyncUp(perf.bts);
-      const p360Deduction = getP360Deduction(perf.p360);
+  function getP360Deduction(p360Perf) {
+    if (p360Perf < 35) return 10;
+    if (p360Perf < 40) return 5;
+    return 0;
+  }
 
-      switch (item) {
-        // Voice family
-        case "beyond-voice":
-        case "voice":
-        case "essential-voice":
-          return Math.max(0, maxRate - voiceDeduction);
+  function getCurrentPayout(item, maxRate, perf) {
+    const voiceDeduction = getVoiceDeduction(perf.voice);
+    const premiumDeduction = getBtsDeductionForPremium(perf.bts);
+    const hintDeduction = getBtsDeductionForHint(perf.bts);
+    const syncDeduction = getBtsDeductionForSyncUp(perf.bts);
+    const p360Deduction = getP360Deduction(perf.p360);
 
-        // Stay at max
-        case "upgrades":
-        case "hometech":
-        case "more-line-mig":
-        case "beyond-line-mig":
-        case "visa-app":
-          return maxRate;
+    switch (item) {
+      case "beyond-voice":
+      case "voice":
+      case "essential-voice":
+        return Math.max(0, maxRate - voiceDeduction);
 
-        // TLife
-        case "tlife-assisted":
-          return perf.tlife < 65 ? 0 : maxRate;
+      case "upgrades":
+      case "hometech":
+      case "more-line-mig":
+      case "beyond-line-mig":
+      case "visa-app":
+        return maxRate;
 
-        // BTS adjusted
-        case "premium-bts":
-        case "hint":
-          return Math.max(0, maxRate - btsDeductionPH);
+      case "tlife-assisted":
+        return perf.tlife < 65 ? 0 : maxRate;
 
-        case "sync-up":
-          return Math.max(0, maxRate - btsDeductionSync);
+      case "premium-bts":
+        return Math.max(0, maxRate - premiumDeduction);
 
-        // P360 adjusted
-        case "p360":
-        case "byod-p360":
-          return Math.max(0, maxRate - p360Deduction);
+      case "hint":
+        return Math.max(0, maxRate - hintDeduction);
 
-        default:
-          return maxRate;
+      case "sync-up":
+        return Math.max(0, maxRate - syncDeduction);
+
+      case "p360":
+      case "byod-p360":
+        return Math.max(0, maxRate - p360Deduction);
+
+      default:
+        return maxRate;
       }
     }
 
