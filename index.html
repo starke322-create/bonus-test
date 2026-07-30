@@ -107,7 +107,8 @@
     .qty-input,
     .performance-input,
     .oem-current-total,
-    .oem-max-total {
+    .oem-max-total,
+    .hours-input {
       width: 100%;
       padding: 6px 4px;
       font-size: 18px;
@@ -122,7 +123,8 @@
     .qty-input:focus,
     .performance-input:focus,
     .oem-current-total:focus,
-    .oem-max-total:focus {
+    .oem-max-total:focus,
+    .hours-input:focus {
       background: var(--focus-bg);
     }
 
@@ -156,6 +158,12 @@
       font-weight: 700;
       color: var(--pink);
       background: var(--cell-bg);
+    }
+
+    .hours-label {
+      font-weight: 800;
+      color: var(--white);
+      background: var(--gray-dark) !important;
     }
 
     .controls {
@@ -211,7 +219,11 @@
         font-size: 12px;
       }
 
-      .qty-input, .performance-input, .oem-current-total, .oem-max-total {
+      .qty-input,
+      .performance-input,
+      .oem-current-total,
+      .oem-max-total,
+      .hours-input {
         font-size: 12px;
         padding: 5px 2px;
       }
@@ -394,29 +406,32 @@
           <td class="pink">OEM Spiffs</td>
           <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
           <td class="current-payout-cell">Varies</td>
-          <td class="money">
-            <input class="oem-current-total" type="number" min="0" step="0.01" value="0" />
-          </td>
+          <td class="money"><input class="oem-current-total" type="number" min="0" step="0.01" value="0" /></td>
           <td class="pink">Varies</td>
-          <td class="money">
-            <input class="oem-max-total" type="number" min="0" step="0.01" value="0" />
-          </td>
+          <td class="money"><input class="oem-max-total" type="number" min="0" step="0.01" value="0" /></td>
         </tr>
 
+        <!-- Summary section starts at column 2, with Hours Worked input in column 1 -->
         <tr>
-          <td class="summary-label" colspan="5">TOTAL MAX BONUS</td>
+          <td class="hours-label" rowspan="4">
+            Hours Worked
+            <div style="margin-top:8px;">
+              <input id="hours-worked" class="hours-input" type="number" min="0" step="0.01" value="8" />
+            </div>
+          </td>
+          <td class="summary-label" colspan="4">TOTAL MAX BONUS</td>
           <td class="summary-value" id="total-max-bonus">$0.00</td>
         </tr>
         <tr>
-          <td class="hourly-label" colspan="5">Max Additional Hourly (8hr day)</td>
+          <td class="hourly-label" colspan="4">MAX ADDITIONAL HOURLY</td>
           <td class="summary-value" id="max-hourly">$0.00</td>
         </tr>
         <tr>
-          <td class="summary-label" colspan="5">TOTAL CURRENT BONUS</td>
+          <td class="summary-label" colspan="4">TOTAL CURRENT BONUS</td>
           <td class="summary-value" id="total-current-bonus">$0.00</td>
         </tr>
         <tr>
-          <td class="hourly-label" colspan="5">Current Additional Hourly (8hr day)</td>
+          <td class="hourly-label" colspan="4">CURRENT ADDITIONAL HOURLY</td>
           <td class="summary-value" id="current-hourly">$0.00</td>
         </tr>
       </tbody>
@@ -427,12 +442,13 @@
     </div>
 
     <div class="note">
-      Current payout adjusts by current performance provided. Estimate does not include store acelerators or decelerators. Enter NET qty amounts. This estimator does not guarantee any payout amounts, please refer to CSBI results and offical bonus doc.
+      Current payout adjusts by current performance provided. Estimate does not include store acelerators or decelerators. Enter NET qty amounts.
+      Max/Current Additional Hourly are calculated as total bonus divided by Hours Worked.
     </div>
   </div>
 
   <script>
-    const STORAGE_KEY = "unofficial_bonus_estimate_saved_data_v1";
+    const STORAGE_KEY = "unofficial_bonus_estimate_saved_data_v2";
 
     function formatMoney(value) {
       return "$" + Number(value).toFixed(2);
@@ -487,30 +503,23 @@
         case "voice":
         case "essential-voice":
           return Math.max(0, maxRate - voiceDeduction);
-
         case "upgrades":
         case "hometech":
         case "more-line-mig":
         case "beyond-line-mig":
         case "visa-app":
           return maxRate;
-
         case "tlife-assisted":
           return perf.tlife < 65 ? 0 : maxRate;
-
         case "premium-bts":
           return Math.max(0, maxRate - premiumDeduction);
-
         case "hint":
           return Math.max(0, maxRate - hintDeduction);
-
         case "sync-up":
           return Math.max(0, maxRate - syncDeduction);
-
         case "p360":
         case "byod-p360":
           return Math.max(0, maxRate - p360Deduction);
-
         default:
           return maxRate;
       }
@@ -522,6 +531,7 @@
         perfBts: document.getElementById("perf-bts").value,
         perfP360: document.getElementById("perf-p360").value,
         perfTlife: document.getElementById("perf-tlife").value,
+        hoursWorked: document.getElementById("hours-worked").value,
         qtyValues: Array.from(document.querySelectorAll(".qty-input")).map((input) => input.value),
         oemCurrent: document.querySelector(".oem-current-total")?.value || "0",
         oemMax: document.querySelector(".oem-max-total")?.value || "0"
@@ -543,6 +553,7 @@
         if (data.perfBts !== undefined) document.getElementById("perf-bts").value = data.perfBts;
         if (data.perfP360 !== undefined) document.getElementById("perf-p360").value = data.perfP360;
         if (data.perfTlife !== undefined) document.getElementById("perf-tlife").value = data.perfTlife;
+        if (data.hoursWorked !== undefined) document.getElementById("hours-worked").value = data.hoursWorked;
 
         const qtyInputs = document.querySelectorAll(".qty-input");
         if (Array.isArray(data.qtyValues)) {
@@ -567,6 +578,8 @@
         p360: parseFloat(document.getElementById("perf-p360").value) || 0,
         tlife: parseFloat(document.getElementById("perf-tlife").value) || 0
       };
+
+      const hoursWorked = parseFloat(document.getElementById("hours-worked").value) || 0;
 
       const rows = document.querySelectorAll("#table-body tr[data-item]");
       let totalCurrentBonus = 0;
@@ -598,13 +611,13 @@
         totalMaxBonus += maxBonus;
       });
 
-      const currentHourly = totalCurrentBonus / 8;
-      const maxHourly = totalMaxBonus / 8;
+      const maxHourly = hoursWorked > 0 ? totalMaxBonus / hoursWorked : 0;
+      const currentHourly = hoursWorked > 0 ? totalCurrentBonus / hoursWorked : 0;
 
-      document.getElementById("total-current-bonus").textContent = formatMoney(totalCurrentBonus);
       document.getElementById("total-max-bonus").textContent = formatMoney(totalMaxBonus);
-      document.getElementById("current-hourly").textContent = formatMoney(currentHourly);
+      document.getElementById("total-current-bonus").textContent = formatMoney(totalCurrentBonus);
       document.getElementById("max-hourly").textContent = formatMoney(maxHourly);
+      document.getElementById("current-hourly").textContent = formatMoney(currentHourly);
     }
 
     function handleInputChange() {
@@ -616,12 +629,13 @@
       document.querySelectorAll(".qty-input, .performance-input, .oem-current-total, .oem-max-total").forEach((input) => {
         input.value = 0;
       });
+      document.getElementById("hours-worked").value = 8;
 
       localStorage.removeItem(STORAGE_KEY);
       calculateTotals();
     }
 
-    document.querySelectorAll(".qty-input, .performance-input, .oem-current-total, .oem-max-total").forEach((input) => {
+    document.querySelectorAll(".qty-input, .performance-input, .oem-current-total, .oem-max-total, .hours-input").forEach((input) => {
       input.addEventListener("input", handleInputChange);
     });
 
