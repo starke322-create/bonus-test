@@ -440,10 +440,18 @@
       return 0;
     }
 
-    function getBtsDeductionForPremiumHint(btsPerf) {
+    function getBtsDeductionForPremium(btsPerf) {
       if (btsPerf < 80) return 8;
       if (btsPerf < 100) return 6;
       if (btsPerf < 110) return 4;
+      if (btsPerf < 125) return 2;
+      return 0;
+    }
+
+    function getBtsDeductionForHint(btsPerf) {
+      if (btsPerf < 80) return 18;
+      if (btsPerf < 100) return 16;
+      if (btsPerf < 110) return 14;
       if (btsPerf < 125) return 2;
       return 0;
     }
@@ -463,18 +471,17 @@
 
     function getCurrentPayout(item, maxRate, perf) {
       const voiceDeduction = getVoiceDeduction(perf.voice);
-      const btsDeductionPH = getBtsDeductionForPremiumHint(perf.bts);
-      const btsDeductionSync = getBtsDeductionForSyncUp(perf.bts);
+      const premiumDeduction = getBtsDeductionForPremium(perf.bts);
+      const hintDeduction = getBtsDeductionForHint(perf.bts);
+      const syncDeduction = getBtsDeductionForSyncUp(perf.bts);
       const p360Deduction = getP360Deduction(perf.p360);
 
       switch (item) {
-        // Voice family
         case "beyond-voice":
         case "voice":
         case "essential-voice":
           return Math.max(0, maxRate - voiceDeduction);
 
-        // Stay at max
         case "upgrades":
         case "hometech":
         case "more-line-mig":
@@ -482,19 +489,18 @@
         case "visa-app":
           return maxRate;
 
-        // TLife
         case "tlife-assisted":
           return perf.tlife < 65 ? 0 : maxRate;
 
-        // BTS adjusted
         case "premium-bts":
+          return Math.max(0, maxRate - premiumDeduction);
+
         case "hint":
-          return Math.max(0, maxRate - btsDeductionPH);
+          return Math.max(0, maxRate - hintDeduction);
 
         case "sync-up":
-          return Math.max(0, maxRate - btsDeductionSync);
+          return Math.max(0, maxRate - syncDeduction);
 
-        // P360 adjusted
         case "p360":
         case "byod-p360":
           return Math.max(0, maxRate - p360Deduction);
@@ -522,7 +528,6 @@
         const qtyInput = row.querySelector(".qty-input");
         const qty = parseFloat(qtyInput.value) || 0;
 
-        // OEM Spiffs special handling
         if (row.dataset.oem === "true") {
           const oemCurrent = parseFloat(row.querySelector(".oem-current-total").value) || 0;
           const oemMax = parseFloat(row.querySelector(".oem-max-total").value) || 0;
