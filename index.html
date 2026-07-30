@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tier 1 Max Payout Bonus Calculator</title>
+  <title>Sales Tracker - Current vs Max</title>
   <style>
     :root {
       --gray-dark: #8f8f8f;
@@ -18,9 +18,7 @@
       --focus-bg: #fff8cc;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -34,7 +32,7 @@
 
     .app {
       width: 100%;
-      max-width: 760px;
+      max-width: 1100px;
       background: var(--white);
       border: 2px solid var(--border);
       box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
@@ -52,18 +50,28 @@
       border-bottom: 2px solid var(--border);
     }
 
+    .section-title {
+      padding: 10px 12px;
+      font-size: 18px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--white);
+      background: var(--gray-dark);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
       table-layout: fixed;
     }
 
-    th,
-    td {
+    th, td {
       padding: 8px 8px;
       text-align: center;
       vertical-align: middle;
-      font-size: 22px;
+      font-size: 18px;
       line-height: 1.15;
       border: 1px solid var(--border);
       background: var(--cell-bg);
@@ -75,28 +83,19 @@
       background: var(--gray-mid);
     }
 
-    .col-sales {
-      width: 34%;
-    }
-
-    .col-rate {
-      width: 26%;
-    }
-
-    .col-qty {
-      width: 16%;
-    }
-
-    .col-total {
-      width: 24%;
-    }
+    .col-sales { width: 24%; }
+    .col-qty { width: 12%; }
+    .col-current-payout { width: 16%; }
+    .col-current-bonus { width: 16%; }
+    .col-max-payout { width: 16%; }
+    .col-max-bonus { width: 16%; }
 
     .pink {
       color: var(--pink);
       font-weight: 700;
     }
 
-    .section {
+    .section-row {
       padding-left: 18px;
       text-align: left;
       font-weight: 800;
@@ -105,10 +104,10 @@
     }
 
     .qty-input,
-    .custom-total-input {
+    .performance-input {
       width: 100%;
       padding: 6px 4px;
-      font-size: 22px;
+      font-size: 18px;
       font-weight: 700;
       text-align: center;
       color: #111111;
@@ -118,14 +117,20 @@
     }
 
     .qty-input:focus,
-    .custom-total-input:focus {
+    .performance-input:focus {
       background: var(--focus-bg);
     }
 
     .money {
-      font-weight: 400;
+      font-weight: 700;
       color: var(--black);
       background: var(--cell-bg);
+    }
+
+    .current-payout-cell {
+      font-weight: 700;
+      color: #444;
+      background: #f9f9f9;
     }
 
     .summary-label {
@@ -167,9 +172,7 @@
       cursor: pointer;
     }
 
-    button:hover {
-      filter: brightness(0.95);
-    }
+    button:hover { filter: brightness(0.95); }
 
     .note {
       padding: 0 16px 16px;
@@ -177,159 +180,239 @@
       color: #555555;
     }
 
-    @media (max-width: 700px) {
-      body {
-        padding: 8px;
-      }
+    .performance-table th, .performance-table td {
+      font-size: 16px;
+      padding: 8px;
+    }
 
-      .title {
-        font-size: 20px;
-      }
+    .performance-category {
+      text-align: left;
+      font-weight: 700;
+      color: var(--pink);
+    }
 
-      th,
-      td {
+    .max-target {
+      font-weight: 800;
+      color: #222;
+      background: #f0f0f0;
+    }
+
+    @media (max-width: 900px) {
+      body { padding: 8px; }
+      .title { font-size: 20px; }
+
+      th, td {
         padding: 6px 4px;
-        font-size: 14px;
+        font-size: 12px;
       }
 
-      .qty-input,
-      .custom-total-input {
-        padding: 6px 2px;
-        font-size: 14px;
+      .qty-input, .performance-input {
+        font-size: 12px;
+        padding: 5px 2px;
       }
 
-      button {
-        width: 100%;
+      .performance-table th, .performance-table td {
+        font-size: 12px;
       }
+
+      button { width: 100%; }
     }
   </style>
 </head>
 <body>
   <div class="app">
-    <div class="title">SALE RECAP</div>
+    <div class="title">Sale Recap - Current vs Max</div>
+
+    <div class="section-title">Current Performance</div>
+    <table class="performance-table">
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>Current Performance %</th>
+          <th>Max Payout Performance %</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="performance-category">Voice</td>
+          <td><input class="performance-input" id="perf-voice" type="number" min="0" step="0.01" value="0" /></td>
+          <td class="max-target">125%</td>
+        </tr>
+        <tr>
+          <td class="performance-category">BTS</td>
+          <td><input class="performance-input" id="perf-bts" type="number" min="0" step="0.01" value="0" /></td>
+          <td class="max-target">125%</td>
+        </tr>
+        <tr>
+          <td class="performance-category">P360 Attach</td>
+          <td><input class="performance-input" id="perf-p360" type="number" min="0" step="0.01" value="0" /></td>
+          <td class="max-target">40%</td>
+        </tr>
+        <tr>
+          <td class="performance-category">Individual TLife %</td>
+          <td><input class="performance-input" id="perf-tlife" type="number" min="0" step="0.01" value="0" /></td>
+          <td class="max-target">65%</td>
+        </tr>
+      </tbody>
+    </table>
 
     <table>
       <thead>
         <tr>
           <th class="col-sales">Sales</th>
-          <th class="col-rate">125% Payout<br>with spiffs</th>
           <th class="col-qty">QTY SOLD</th>
-          <th class="col-total">TOTAL<br>PAYOUT</th>
+          <th class="col-current-payout">Current Payout<br>with spiffs</th>
+          <th class="col-current-bonus">Current Bonus</th>
+          <th class="col-max-payout">Max Payout<br>with spiffs</th>
+          <th class="col-max-bonus">Max Bonus</th>
         </tr>
       </thead>
       <tbody id="table-body">
-        <tr data-rate="39">
+        <tr data-item="beyond-voice" data-max-rate="39">
           <td class="pink">Beyond Voice</td>
+          <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
+          <td class="current-payout-cell">$0.00</td>
+          <td class="money current-bonus">$0.00</td>
           <td class="pink">$39.00</td>
-          <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
-          <td class="money row-total">$0.00</td>
+          <td class="money max-bonus">$0.00</td>
         </tr>
-        <tr data-rate="29">
+        <tr data-item="voice" data-max-rate="29">
           <td class="pink">Voice</td>
+          <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
+          <td class="current-payout-cell">$0.00</td>
+          <td class="money current-bonus">$0.00</td>
           <td class="pink">$29.00</td>
-          <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
-          <td class="money row-total">$0.00</td>
+          <td class="money max-bonus">$0.00</td>
         </tr>
-        <tr data-rate="22">
+        <tr data-item="essential-voice" data-max-rate="22">
           <td class="pink">Essential Voice</td>
+          <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
+          <td class="current-payout-cell">$0.00</td>
+          <td class="money current-bonus">$0.00</td>
           <td class="pink">$22.00</td>
-          <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
-          <td class="money row-total">$0.00</td>
+          <td class="money max-bonus">$0.00</td>
         </tr>
-        <tr data-rate="1">
+        <tr data-item="upgrades" data-max-rate="1">
           <td class="pink">Upgrades</td>
+          <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
+          <td class="current-payout-cell">$1.00</td>
+          <td class="money current-bonus">$0.00</td>
           <td class="pink">$1.00</td>
-          <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
-          <td class="money row-total">$0.00</td>
+          <td class="money max-bonus">$0.00</td>
         </tr>
-        <tr data-rate="5">
+        <tr data-item="tlife-assisted" data-max-rate="5">
           <td class="pink">Tlife Assisted</td>
-          <td class="pink">$5.00</td>
           <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
-          <td class="money row-total">$0.00</td>
+          <td class="current-payout-cell">$0.00</td>
+          <td class="money current-bonus">$0.00</td>
+          <td class="pink">$5.00</td>
+          <td class="money max-bonus">$0.00</td>
         </tr>
-        <tr data-rate="20">
+        <tr data-item="hint" data-max-rate="20">
           <td class="pink">HINT</td>
+          <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
+          <td class="current-payout-cell">$0.00</td>
+          <td class="money current-bonus">$0.00</td>
           <td class="pink">$20.00</td>
-          <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
-          <td class="money row-total">$0.00</td>
+          <td class="money max-bonus">$0.00</td>
         </tr>
-        <tr data-rate="10">
+        <tr data-item="premium-bts" data-max-rate="10">
           <td class="pink">PREMIUM BTS</td>
+          <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
+          <td class="current-payout-cell">$0.00</td>
+          <td class="money current-bonus">$0.00</td>
           <td class="pink">$10.00</td>
-          <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
-          <td class="money row-total">$0.00</td>
+          <td class="money max-bonus">$0.00</td>
         </tr>
-        <tr data-rate="5">
+        <tr data-item="sync-up" data-max-rate="5">
           <td class="pink">Sync Up</td>
-          <td class="pink">$5.00</td>
           <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
-          <td class="money row-total">$0.00</td>
+          <td class="current-payout-cell">$0.00</td>
+          <td class="money current-bonus">$0.00</td>
+          <td class="pink">$5.00</td>
+          <td class="money max-bonus">$0.00</td>
         </tr>
 
         <tr>
-          <td class="section" colspan="4">Feature Sales</td>
+          <td class="section-row" colspan="6">Feature Sales</td>
         </tr>
 
-        <tr data-rate="25">
+        <tr data-item="visa-app" data-max-rate="25">
           <td class="pink">VISA App</td>
+          <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
+          <td class="current-payout-cell">$25.00</td>
+          <td class="money current-bonus">$0.00</td>
           <td class="pink">$25.00</td>
-          <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
-          <td class="money row-total">$0.00</td>
+          <td class="money max-bonus">$0.00</td>
         </tr>
-        <tr data-rate="13">
+        <tr data-item="p360" data-max-rate="13">
           <td class="pink">P360</td>
+          <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
+          <td class="current-payout-cell">$0.00</td>
+          <td class="money current-bonus">$0.00</td>
           <td class="pink">$13.00</td>
-          <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
-          <td class="money row-total">$0.00</td>
+          <td class="money max-bonus">$0.00</td>
         </tr>
-        <tr data-rate="15">
+        <tr data-item="byod-p360" data-max-rate="15">
           <td class="pink">BYOD P360</td>
+          <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
+          <td class="current-payout-cell">$0.00</td>
+          <td class="money current-bonus">$0.00</td>
           <td class="pink">$15.00</td>
-          <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
-          <td class="money row-total">$0.00</td>
+          <td class="money max-bonus">$0.00</td>
         </tr>
-        <tr data-rate="8">
+        <tr data-item="hometech" data-max-rate="8">
           <td class="pink">Hometech</td>
+          <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
+          <td class="current-payout-cell">$8.00</td>
+          <td class="money current-bonus">$0.00</td>
           <td class="pink">$8.00</td>
-          <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
-          <td class="money row-total">$0.00</td>
+          <td class="money max-bonus">$0.00</td>
         </tr>
-        <tr data-rate="2">
+        <tr data-item="more-line-mig" data-max-rate="2">
           <td class="pink">More LINE Mig</td>
+          <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
+          <td class="current-payout-cell">$2.00</td>
+          <td class="money current-bonus">$0.00</td>
           <td class="pink">$2.00</td>
-          <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
-          <td class="money row-total">$0.00</td>
+          <td class="money max-bonus">$0.00</td>
         </tr>
-        <tr data-rate="4">
+        <tr data-item="beyond-line-mig" data-max-rate="4">
           <td class="pink">Beyond LINE Mig</td>
+          <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
+          <td class="current-payout-cell">$4.00</td>
+          <td class="money current-bonus">$0.00</td>
           <td class="pink">$4.00</td>
-          <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
-          <td class="money row-total">$0.00</td>
+          <td class="money max-bonus">$0.00</td>
         </tr>
-        <tr data-custom="true">
+        <tr data-item="oem-spiffs" data-max-rate="0" data-oem="true">
           <td class="pink">OEM Spiffs</td>
-          <td class="pink">Varies</td>
           <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
+          <td class="current-payout-cell">Varies</td>
           <td class="money">
-            <input
-              class="custom-total-input"
-              type="number"
-              min="0"
-              step="0.01"
-              value="0"
-              aria-label="OEM Spiffs total payout"
-            />
+            <input class="oem-current-total" type="number" min="0" step="0.01" value="0" style="width:100%;padding:6px 4px;font-size:16px;text-align:center;border:none;background:#fff;" />
+          </td>
+          <td class="pink">Varies</td>
+          <td class="money">
+            <input class="oem-max-total" type="number" min="0" step="0.01" value="0" style="width:100%;padding:6px 4px;font-size:16px;text-align:center;border:none;background:#fff;" />
           </td>
         </tr>
 
         <tr>
-          <td class="summary-label" colspan="3">TOTAL POTENTIAL COMMISSION</td>
-          <td class="summary-value" id="grand-total">$0.00</td>
+          <td class="summary-label" colspan="5">TOTAL CURRENT BONUS</td>
+          <td class="summary-value" id="total-current-bonus">$0.00</td>
         </tr>
         <tr>
-          <td class="hourly-label" colspan="3">Additional Hourly (8hr day)</td>
-          <td class="summary-value" id="additional-hourly">$0.00</td>
+          <td class="summary-label" colspan="5">TOTAL MAX BONUS</td>
+          <td class="summary-value" id="total-max-bonus">$0.00</td>
+        </tr>
+        <tr>
+          <td class="hourly-label" colspan="5">Current Additional Hourly (8hr day)</td>
+          <td class="summary-value" id="current-hourly">$0.00</td>
+        </tr>
+        <tr>
+          <td class="hourly-label" colspan="5">Max Additional Hourly (8hr day)</td>
+          <td class="summary-value" id="max-hourly">$0.00</td>
         </tr>
       </tbody>
     </table>
@@ -339,8 +422,8 @@
     </div>
 
     <div class="note">
-      Enter quantities for each item. OEM Spiffs can be entered directly as a payout amount.
-      Additional Hourly is automatically calculated as total commission divided by 8.
+      Current payout adjusts by performance rules you provided. Upgrade, Hometech, More LINE Mig, and Beyond LINE Mig remain at max payout for current.
+      OEM Spiffs stays manual and unadjusted.
     </div>
   </div>
 
@@ -349,55 +432,139 @@
       return "$" + Number(value).toFixed(2);
     }
 
+    function getVoiceDeduction(voicePerf) {
+      if (voicePerf < 80) return 15;
+      if (voicePerf < 100) return 12.5;
+      if (voicePerf < 112.5) return 9;
+      if (voicePerf < 125) return 5;
+      return 0;
+    }
+
+    function getBtsDeductionForPremiumHint(btsPerf) {
+      if (btsPerf < 80) return 8;
+      if (btsPerf < 100) return 6;
+      if (btsPerf < 110) return 4;
+      if (btsPerf < 125) return 2;
+      return 0;
+    }
+
+    function getBtsDeductionForSyncUp(btsPerf) {
+      if (btsPerf < 80) return 5;
+      if (btsPerf < 100) return 4;
+      if (btsPerf < 125) return 2;
+      return 0;
+    }
+
+    function getP360Deduction(p360Perf) {
+      if (p360Perf < 35) return 10;
+      if (p360Perf < 40) return 5;
+      return 0;
+    }
+
+    function getCurrentPayout(item, maxRate, perf) {
+      const voiceDeduction = getVoiceDeduction(perf.voice);
+      const btsDeductionPH = getBtsDeductionForPremiumHint(perf.bts);
+      const btsDeductionSync = getBtsDeductionForSyncUp(perf.bts);
+      const p360Deduction = getP360Deduction(perf.p360);
+
+      switch (item) {
+        // Voice family
+        case "beyond-voice":
+        case "voice":
+        case "essential-voice":
+          return Math.max(0, maxRate - voiceDeduction);
+
+        // Stay at max
+        case "upgrades":
+        case "hometech":
+        case "more-line-mig":
+        case "beyond-line-mig":
+        case "visa-app":
+          return maxRate;
+
+        // TLife
+        case "tlife-assisted":
+          return perf.tlife < 65 ? 0 : maxRate;
+
+        // BTS adjusted
+        case "premium-bts":
+        case "hint":
+          return Math.max(0, maxRate - btsDeductionPH);
+
+        case "sync-up":
+          return Math.max(0, maxRate - btsDeductionSync);
+
+        // P360 adjusted
+        case "p360":
+        case "byod-p360":
+          return Math.max(0, maxRate - p360Deduction);
+
+        default:
+          return maxRate;
+      }
+    }
+
     function calculateTotals() {
-      const standardRows = document.querySelectorAll("#table-body tr[data-rate]");
-      const customRow = document.querySelector('#table-body tr[data-custom="true"]');
-      let grandTotal = 0;
+      const perf = {
+        voice: parseFloat(document.getElementById("perf-voice").value) || 0,
+        bts: parseFloat(document.getElementById("perf-bts").value) || 0,
+        p360: parseFloat(document.getElementById("perf-p360").value) || 0,
+        tlife: parseFloat(document.getElementById("perf-tlife").value) || 0
+      };
 
-      standardRows.forEach((row) => {
-        const rate = parseFloat(row.dataset.rate) || 0;
+      const rows = document.querySelectorAll("#table-body tr[data-item]");
+      let totalCurrentBonus = 0;
+      let totalMaxBonus = 0;
+
+      rows.forEach((row) => {
+        const item = row.dataset.item;
+        const maxRate = parseFloat(row.dataset.maxRate) || 0;
         const qtyInput = row.querySelector(".qty-input");
-        const rowTotalCell = row.querySelector(".row-total");
         const qty = parseFloat(qtyInput.value) || 0;
-        const total = rate * qty;
 
-        rowTotalCell.textContent = formatMoney(total);
-        grandTotal += total;
+        // OEM Spiffs special handling
+        if (row.dataset.oem === "true") {
+          const oemCurrent = parseFloat(row.querySelector(".oem-current-total").value) || 0;
+          const oemMax = parseFloat(row.querySelector(".oem-max-total").value) || 0;
+          totalCurrentBonus += oemCurrent;
+          totalMaxBonus += oemMax;
+          return;
+        }
+
+        const currentPayout = getCurrentPayout(item, maxRate, perf);
+        const currentBonus = currentPayout * qty;
+        const maxBonus = maxRate * qty;
+
+        row.querySelector(".current-payout-cell").textContent = formatMoney(currentPayout);
+        row.querySelector(".current-bonus").textContent = formatMoney(currentBonus);
+        row.querySelector(".max-bonus").textContent = formatMoney(maxBonus);
+
+        totalCurrentBonus += currentBonus;
+        totalMaxBonus += maxBonus;
       });
 
-      if (customRow) {
-        const customTotalInput = customRow.querySelector(".custom-total-input");
-        const customValue = parseFloat(customTotalInput.value) || 0;
-        grandTotal += customValue;
-      }
+      const currentHourly = totalCurrentBonus / 8;
+      const maxHourly = totalMaxBonus / 8;
 
-      const additionalHourly = grandTotal / 8;
-
-      document.getElementById("grand-total").textContent = formatMoney(grandTotal);
-      document.getElementById("additional-hourly").textContent = formatMoney(additionalHourly);
+      document.getElementById("total-current-bonus").textContent = formatMoney(totalCurrentBonus);
+      document.getElementById("total-max-bonus").textContent = formatMoney(totalMaxBonus);
+      document.getElementById("current-hourly").textContent = formatMoney(currentHourly);
+      document.getElementById("max-hourly").textContent = formatMoney(maxHourly);
     }
 
     function clearAll() {
-      document.querySelectorAll(".qty-input, .custom-total-input").forEach((input) => {
+      document.querySelectorAll(".qty-input, .performance-input, .oem-current-total, .oem-max-total").forEach((input) => {
         input.value = 0;
       });
 
-      document.querySelectorAll(".row-total").forEach((cell) => {
-        cell.textContent = "$0.00";
-      });
-
-      document.getElementById("grand-total").textContent = "$0.00";
-      document.getElementById("additional-hourly").textContent = "$0.00";
+      calculateTotals();
     }
 
-    document.querySelectorAll(".qty-input, .custom-total-input").forEach((input) => {
+    document.querySelectorAll(".qty-input, .performance-input, .oem-current-total, .oem-max-total").forEach((input) => {
       input.addEventListener("input", calculateTotals);
     });
 
-    document.getElementById("clear-btn").addEventListener("click", () => {
-      clearAll();
-      calculateTotals();
-    });
+    document.getElementById("clear-btn").addEventListener("click", clearAll);
 
     calculateTotals();
   </script>
