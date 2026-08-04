@@ -62,27 +62,6 @@
       border-bottom: 1px solid var(--border);
     }
 
-    .minimums-bar {
-      display: flex;
-      gap: 24px;
-      justify-content: center;
-      align-items: center;
-      padding: 12px;
-      border-left: 1px solid var(--border);
-      border-right: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-      background: #f7f7f7;
-      font-weight: 700;
-    }
-
-    .minimums-bar label {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: #222;
-      font-size: 15px;
-    }
-
     table {
       width: 100%;
       border-collapse: collapse;
@@ -253,12 +232,6 @@
         font-size: 12px;
       }
 
-      .minimums-bar {
-        flex-direction: column;
-        gap: 10px;
-        align-items: flex-start;
-      }
-
       button { width: 100%; }
     }
   </style>
@@ -300,11 +273,6 @@
       </tbody>
     </table>
 
-    <div class="minimums-bar">
-      <label><input type="checkbox" id="voice-minimum" /> Achieved Net Voice Minimum</label>
-      <label><input type="checkbox" id="bts-minimum" /> Achieved Net BTS Minimum</label>
-    </div>
-
     <table>
       <thead>
         <tr>
@@ -344,7 +312,7 @@
         <tr data-item="upgrades" data-max-rate="1">
           <td class="pink">Upgrades</td>
           <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
-          <td class="current-payout-cell">$0.00</td>
+          <td class="current-payout-cell">$1.00</td>
           <td class="money current-bonus">$0.00</td>
           <td class="pink">$1.00</td>
           <td class="money max-bonus">$0.00</td>
@@ -373,6 +341,14 @@
           <td class="pink">$10.00</td>
           <td class="money max-bonus">$0.00</td>
         </tr>
+        <tr data-item="bts" data-max-rate="8">
+          <td class="pink">BTS</td>
+          <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
+          <td class="current-payout-cell">$0.00</td>
+          <td class="money current-bonus">$0.00</td>
+          <td class="pink">$8.00</td>
+          <td class="money max-bonus">$0.00</td>
+        </tr>
         <tr data-item="sync-up" data-max-rate="5">
           <td class="pink">Sync Up</td>
           <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
@@ -382,12 +358,14 @@
           <td class="money max-bonus">$0.00</td>
         </tr>
 
-        <tr><td class="section-row" colspan="6">Feature Sales</td></tr>
+        <tr>
+          <td class="section-row" colspan="6">Feature Sales</td>
+        </tr>
 
         <tr data-item="visa-app" data-max-rate="25">
           <td class="pink">VISA App</td>
           <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
-          <td class="current-payout-cell">$0.00</td>
+          <td class="current-payout-cell">$25.00</td>
           <td class="money current-bonus">$0.00</td>
           <td class="pink">$25.00</td>
           <td class="money max-bonus">$0.00</td>
@@ -411,7 +389,7 @@
         <tr data-item="hometech" data-max-rate="8">
           <td class="pink">Hometech</td>
           <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
-          <td class="current-payout-cell">$0.00</td>
+          <td class="current-payout-cell">$8.00</td>
           <td class="money current-bonus">$0.00</td>
           <td class="pink">$8.00</td>
           <td class="money max-bonus">$0.00</td>
@@ -419,7 +397,7 @@
         <tr data-item="more-line-mig" data-max-rate="2">
           <td class="pink">More LINE Mig</td>
           <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
-          <td class="current-payout-cell">$0.00</td>
+          <td class="current-payout-cell">$2.00</td>
           <td class="money current-bonus">$0.00</td>
           <td class="pink">$2.00</td>
           <td class="money max-bonus">$0.00</td>
@@ -427,7 +405,7 @@
         <tr data-item="beyond-line-mig" data-max-rate="4">
           <td class="pink">Beyond LINE Mig</td>
           <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
-          <td class="current-payout-cell">$0.00</td>
+          <td class="current-payout-cell">$4.00</td>
           <td class="money current-bonus">$0.00</td>
           <td class="pink">$4.00</td>
           <td class="money max-bonus">$0.00</td>
@@ -471,158 +449,111 @@
     </div>
 
     <div class="note">
-      Current payout = Table 1 base + applicable Table 2 spiffs for tracked metrics. Table 2 spiffs still apply even if minimum checkboxes are not met.
-      Max payout column remains fixed as entered.
+      Current payout adjusts by current performance provided. Estimate does not include store acelerators or decelerators. Enter NET qty amounts.
+      Max/Current Additional Hourly are calculated as total bonus divided by Hours Worked.
     </div>
   </div>
 
   <script>
-    const STORAGE_KEY = "unofficial_bonus_estimate_saved_data_v5";
+    const STORAGE_KEY = "unofficial_bonus_estimate_saved_data_v2";
 
     function formatMoney(value) {
       return "$" + Number(value).toFixed(2);
     }
 
     function getQty(item) {
-      const row = document.querySelector(`tr[data-item="${item}"]`);
-      return parseFloat(row?.querySelector(".qty-input")?.value) || 0;
+      const row = document.querySelector(`#table-body tr[data-item="${item}"]`);
+      if (!row) return 0;
+      const input = row.querySelector(".qty-input");
+      return input ? (parseFloat(input.value) || 0) : 0;
     }
 
-    function getVoiceTable1Base(perfVoice, voiceQtyCombined, voiceMinimumAchieved) {
-      if (voiceQtyCombined < 11) return 0;
-
-      // 30+ special base rules
-      if (voiceQtyCombined >= 30) {
-        if (perfVoice <= 112.5) return 14; // guaranteed row shown in table image
-        if (perfVoice <= 125) return 15;
-        return 19;
-      }
-
-      // 11-29 rules
-      if (perfVoice < 80) return 4;
-      if (perfVoice < 100) return 6.5;
-      if (perfVoice <= 112.5) return 10;
-      if (perfVoice <= 125) return 15;
-      return 19;
+    function getVoiceDeduction(voicePerf) {
+      if (voicePerf < 80) return 25;
+      if (voicePerf < 100) return 22.5;
+      if (voicePerf < 105) return 19;
+      if (voicePerf < 112.5) return 9;
+      if (voicePerf < 125) return 4;
+      return 0;
     }
 
-    function getBtsTable1Base(perfBts, btsQtyCombined, btsMinimumAchieved) {
-      if (btsQtyCombined < 7) return 0;
-      if (perfBts < 80) return 2;
-      if (perfBts < 100) return 4;
-      if (perfBts <= 125) return 6;
-      return 8;
+    function getBtsDeductionForPremium(btsPerf) {
+      if (btsPerf < 80) return 8;
+      if (btsPerf < 100) return 6;
+      if (btsPerf < 110) return 4;
+      if (btsPerf < 125) return 2;
+      return 0;
     }
 
-    function getVoiceTable1Current(item, perfVoice, voiceQtyCombined, voiceMinimumAchieved) {
-      // If 30+ override applies, force these fixed payouts regardless of minimum checkbox
-      if (voiceQtyCombined >= 30) {
-        if (perfVoice >= 105 && perfVoice < 112.5) {
-          if (item === "beyond-voice") return 35;
-          if (item === "voice") return 25;
-          if (item === "essential-voice") return 18;
-        } else if (perfVoice < 105) {
-          if (item === "beyond-voice") return 25;
-          if (item === "voice") return 15;
-          if (item === "essential-voice") return 8;
-        }
-      }
-
-      // If minimum not met, fallback non-minimum table1 payouts
-      if (!voiceMinimumAchieved) {
-        if (item === "beyond-voice") return perfVoice > 104.99 ? 20 : 10;
-        if (item === "voice") return perfVoice > 104.99 ? 10 : 0;
-        if (item === "essential-voice") return perfVoice > 104.99 ? 3 : 0;
-      }
-
-      // minimum met: use table1 base
-      return getVoiceTable1Base(perfVoice, voiceQtyCombined, voiceMinimumAchieved);
+    function getBtsDeductionForHint(btsPerf) {
+      if (btsPerf < 80) return 18;
+      if (btsPerf < 100) return 16;
+      if (btsPerf < 110) return 14;
+      if (btsPerf < 125) return 2;
+      return 0;
     }
 
-    function getBtsTable1Current(item, perfBts, btsQtyCombined, btsMinimumAchieved) {
-      // if minimum not met: special fallback rules you set
-      if (!btsMinimumAchieved) {
-        if (item === "hint") return perfBts > 109.99 ? 10 : 0;
-        if (item === "premium-bts") return perfBts > 109.99 ? 2 : 0;
-        if (item === "sync-up") return 0;
-      }
-
-      // minimum met: use table1 base
-      return getBtsTable1Base(perfBts, btsQtyCombined, btsMinimumAchieved);
+    function getBtsDeductionForBts(btsPerf) {
+      if (btsPerf < 80) return 8;
+      if (btsPerf < 100) return 6;
+      if (btsPerf < 110) return 4;
+      if (btsPerf < 125) return 2;
+      return 0;
     }
 
-    function getCurrentPayout(item, maxRate, perf, flags) {
-      const voiceQtyCombined = getQty("beyond-voice") + getQty("voice") + getQty("essential-voice");
-      const btsQtyCombined = getQty("hint") + getQty("premium-bts") + getQty("sync-up");
+    function getBtsDeductionForSyncUp(btsPerf) {
+      if (btsPerf < 80) return 5;
+      if (btsPerf < 100) return 4;
+      if (btsPerf < 125) return 2;
+      return 0;
+    }
 
-      let table1Base = 0;
-      let table2Spiff = 0;
+    function getP360Deduction(p360Perf) {
+      if (p360Perf < 35) return 10;
+      if (p360Perf < 40) return 5;
+      return 0;
+    }
 
-      // Voice family
-      if (item === "beyond-voice" || item === "voice" || item === "essential-voice") {
-        table1Base = getVoiceTable1Current(item, perf.voice, voiceQtyCombined, flags.voiceMinimumAchieved);
+    function getCurrentPayout(item, maxRate, perf, minimums) {
+      const voiceDeduction = getVoiceDeduction(perf.voice);
+      const premiumDeduction = getBtsDeductionForPremium(perf.bts);
+      const hintDeduction = getBtsDeductionForHint(perf.bts);
+      const btsDeduction = getBtsDeductionForBts(perf.bts);
+      const syncDeduction = getBtsDeductionForSyncUp(perf.bts);
+      const p360Deduction = getP360Deduction(perf.p360);
 
-        // Table 2 spiffs
-        if (perf.voice >= 105) table2Spiff += 10; // voice activation spiff
-        if (item === "essential-voice") table2Spiff += -7; // essential spiff
+      switch (item) {
+        case "beyond-voice":
+        case "voice":
+        case "essential-voice":
+          if (!minimums.voice) return 0;
+          return Math.max(0, maxRate - voiceDeduction);
+        case "upgrades":
+        case "hometech":
+        case "more-line-mig":
+        case "beyond-line-mig":
+        case "visa-app":
+          return maxRate;
+        case "tlife-assisted":
+          return perf.tlife < 65 ? 0 : maxRate;
+        case "premium-bts":
+          if (!minimums.bts) return 0;
+          return Math.max(0, maxRate - premiumDeduction);
+        case "hint":
+          if (!minimums.bts) return 0;
+          return Math.max(0, maxRate - hintDeduction);
+        case "bts":
+          if (!minimums.bts) return 0;
+          return Math.max(0, maxRate - btsDeduction);
+        case "sync-up":
+          if (!minimums.bts) return 0;
+          return Math.max(0, maxRate - syncDeduction);
+        case "p360":
+        case "byod-p360":
+          return Math.max(0, maxRate - p360Deduction);
+        default:
+          return maxRate;
       }
-
-      // BTS family (HINT same as HSI; HSI is premium BTS logic)
-      else if (item === "hint" || item === "premium-bts" || item === "sync-up") {
-        table1Base = getBtsTable1Current(item, perf.bts, btsQtyCombined, flags.btsMinimumAchieved);
-
-        // Table 2 spiffs apply even if minimum not achieved
-        if (item === "premium-bts" && perf.bts >= 110) table2Spiff += 2;
-        if (item === "hint" && perf.bts > 110) table2Spiff += 10;
-        if (item === "sync-up") table2Spiff += -3;
-      }
-
-      // Specific non-voice/non-bts metrics in your calculator
-      else {
-        switch (item) {
-          case "upgrades":
-            table1Base = 0;
-            table2Spiff = 1;
-            break;
-          case "tlife-assisted":
-            table1Base = 0;
-            table2Spiff = perf.tlife > 65 ? 5 : 0;
-            break;
-          case "visa-app":
-            table1Base = 0;
-            table2Spiff = 25;
-            break;
-          case "p360":
-            table1Base = 0;
-            table2Spiff = 0;
-            if (perf.p360 >= 40) table2Spiff += 5;
-            else if (perf.p360 <= 35) table2Spiff += -5;
-            break;
-          case "byod-p360":
-            table1Base = 0;
-            table2Spiff = 2;
-            if (perf.p360 >= 40) table2Spiff += 5;
-            else if (perf.p360 <= 35) table2Spiff += -5;
-            break;
-          case "hometech":
-            table1Base = 0;
-            table2Spiff = 8;
-            break;
-          case "more-line-mig":
-            table1Base = 0;
-            table2Spiff = 2;
-            break;
-          case "beyond-line-mig":
-            table1Base = 0;
-            table2Spiff = 4;
-            break;
-          default:
-            table1Base = maxRate;
-            table2Spiff = 0;
-        }
-      }
-
-      return Math.max(0, table1Base + table2Spiff);
     }
 
     function getAllInputsData() {
@@ -631,8 +562,6 @@
         perfBts: document.getElementById("perf-bts").value,
         perfP360: document.getElementById("perf-p360").value,
         perfTlife: document.getElementById("perf-tlife").value,
-        voiceMinimumAchieved: document.getElementById("voice-minimum").checked,
-        btsMinimumAchieved: document.getElementById("bts-minimum").checked,
         hoursWorked: document.getElementById("hours-worked").value,
         qtyValues: Array.from(document.querySelectorAll(".qty-input")).map((input) => input.value),
         oemCurrent: document.querySelector(".oem-current-total")?.value || "0",
@@ -655,8 +584,6 @@
         if (data.perfBts !== undefined) document.getElementById("perf-bts").value = data.perfBts;
         if (data.perfP360 !== undefined) document.getElementById("perf-p360").value = data.perfP360;
         if (data.perfTlife !== undefined) document.getElementById("perf-tlife").value = data.perfTlife;
-        if (data.voiceMinimumAchieved !== undefined) document.getElementById("voice-minimum").checked = !!data.voiceMinimumAchieved;
-        if (data.btsMinimumAchieved !== undefined) document.getElementById("bts-minimum").checked = !!data.btsMinimumAchieved;
         if (data.hoursWorked !== undefined) document.getElementById("hours-worked").value = data.hoursWorked;
 
         const qtyInputs = document.querySelectorAll(".qty-input");
@@ -683,9 +610,12 @@
         tlife: parseFloat(document.getElementById("perf-tlife").value) || 0
       };
 
-      const flags = {
-        voiceMinimumAchieved: document.getElementById("voice-minimum").checked,
-        btsMinimumAchieved: document.getElementById("bts-minimum").checked
+      const voiceQtyCombined = getQty("beyond-voice") + getQty("voice") + getQty("essential-voice");
+      const btsQtyCombined = getQty("hint") + getQty("premium-bts") + getQty("bts") + getQty("sync-up");
+
+      const minimums = {
+        voice: voiceQtyCombined >= 11,
+        bts: btsQtyCombined >= 7
       };
 
       const hoursWorked = parseFloat(document.getElementById("hours-worked").value) || 0;
@@ -697,17 +627,18 @@
       rows.forEach((row) => {
         const item = row.dataset.item;
         const maxRate = parseFloat(row.dataset.maxRate) || 0;
-        const qty = parseFloat(row.querySelector(".qty-input")?.value) || 0;
+        const qtyInput = row.querySelector(".qty-input");
+        const qty = parseFloat(qtyInput.value) || 0;
 
         if (row.dataset.oem === "true") {
-          const oemCurrent = parseFloat(row.querySelector(".oem-current-total")?.value) || 0;
-          const oemMax = parseFloat(row.querySelector(".oem-max-total")?.value) || 0;
+          const oemCurrent = parseFloat(row.querySelector(".oem-current-total").value) || 0;
+          const oemMax = parseFloat(row.querySelector(".oem-max-total").value) || 0;
           totalCurrentBonus += oemCurrent;
           totalMaxBonus += oemMax;
           return;
         }
 
-        const currentPayout = getCurrentPayout(item, maxRate, perf, flags);
+        const currentPayout = getCurrentPayout(item, maxRate, perf, minimums);
         const currentBonus = currentPayout * qty;
         const maxBonus = maxRate * qty;
 
@@ -737,9 +668,8 @@
       document.querySelectorAll(".qty-input, .performance-input, .oem-current-total, .oem-max-total").forEach((input) => {
         input.value = 0;
       });
-      document.getElementById("voice-minimum").checked = false;
-      document.getElementById("bts-minimum").checked = false;
       document.getElementById("hours-worked").value = 8;
+
       localStorage.removeItem(STORAGE_KEY);
       calculateTotals();
     }
@@ -748,8 +678,6 @@
       input.addEventListener("input", handleInputChange);
     });
 
-    document.getElementById("voice-minimum").addEventListener("change", handleInputChange);
-    document.getElementById("bts-minimum").addEventListener("change", handleInputChange);
     document.getElementById("clear-btn").addEventListener("click", clearAll);
 
     loadSavedData();
