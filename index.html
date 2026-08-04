@@ -301,14 +301,8 @@
     </table>
 
     <div class="minimums-bar">
-      <label>
-        <input type="checkbox" id="voice-minimum" />
-        Achieved Net Voice Minimum
-      </label>
-      <label>
-        <input type="checkbox" id="bts-minimum" />
-        Achieved Net BTS Minimum
-      </label>
+      <label><input type="checkbox" id="voice-minimum" /> Achieved Net Voice Minimum</label>
+      <label><input type="checkbox" id="bts-minimum" /> Achieved Net BTS Minimum</label>
     </div>
 
     <table>
@@ -388,9 +382,7 @@
           <td class="money max-bonus">$0.00</td>
         </tr>
 
-        <tr>
-          <td class="section-row" colspan="6">Feature Sales</td>
-        </tr>
+        <tr><td class="section-row" colspan="6">Feature Sales</td></tr>
 
         <tr data-item="visa-app" data-max-rate="25">
           <td class="pink">VISA App</td>
@@ -484,7 +476,7 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "unofficial_bonus_estimate_saved_data_v3";
+    const STORAGE_KEY = "unofficial_bonus_estimate_saved_data_v4";
 
     function formatMoney(value) {
       return "$" + Number(value).toFixed(2);
@@ -529,8 +521,7 @@
 
     function getQty(item) {
       const row = document.querySelector(`tr[data-item="${item}"]`);
-      if (!row) return 0;
-      return parseFloat(row.querySelector(".qty-input")?.value) || 0;
+      return parseFloat(row?.querySelector(".qty-input")?.value) || 0;
     }
 
     function getCurrentPayout(item, maxRate, perf, flags, voiceFamilyCombinedQty) {
@@ -540,9 +531,8 @@
       const syncDeduction = getBtsDeductionForSyncUp(perf.bts);
       const p360Deduction = getP360Deduction(perf.p360);
 
-      // Voice-minimum NOT achieved logic
+      // Voice minimum NOT achieved rules
       if (!flags.voiceMinimumAchieved) {
-        // Special override if voice family qty >= 30
         if (voiceFamilyCombinedQty >= 30) {
           if (perf.voice >= 105 && perf.voice < 112.5) {
             if (item === "beyond-voice") return 35;
@@ -555,24 +545,27 @@
           }
         }
 
-        // Base no-minimum voice rules
         if (item === "beyond-voice") return perf.voice > 104.99 ? 20 : 10;
         if (item === "voice") return perf.voice > 104.99 ? 10 : 0;
         if (item === "essential-voice") return perf.voice > 104.99 ? 3 : 0;
       }
 
-      // BTS-minimum NOT achieved logic
+      // BTS minimum NOT achieved rules
       if (!flags.btsMinimumAchieved) {
         if (item === "hint") return perf.bts > 109.99 ? 10 : 0;
         if (item === "premium-bts") return perf.bts > 109.99 ? 2 : 0;
-        if (item === "sync-up") return 0; // per your rule unless BTS minimum is checked
+        if (item === "sync-up") return 0;
       }
 
       switch (item) {
         case "beyond-voice":
         case "voice":
-        case "essential-voice":
-          return Math.max(0, maxRate - voiceDeduction);
+        case "essential-voice": {
+          let payout = Math.max(0, maxRate - voiceDeduction);
+          // NEW RULE: all current voice payouts are $10 less until store voice hits 105%
+          if (perf.voice < 105) payout = Math.max(0, payout - 10);
+          return payout;
+        }
 
         case "upgrades":
         case "hometech":
@@ -624,10 +617,8 @@
     function loadSavedData() {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return;
-
       try {
         const data = JSON.parse(raw);
-
         if (data.perfVoice !== undefined) document.getElementById("perf-voice").value = data.perfVoice;
         if (data.perfBts !== undefined) document.getElementById("perf-bts").value = data.perfBts;
         if (data.perfP360 !== undefined) document.getElementById("perf-p360").value = data.perfP360;
@@ -666,8 +657,7 @@
       };
 
       const hoursWorked = parseFloat(document.getElementById("hours-worked").value) || 0;
-      const voiceFamilyCombinedQty =
-        getQty("beyond-voice") + getQty("voice") + getQty("essential-voice");
+      const voiceFamilyCombinedQty = getQty("beyond-voice") + getQty("voice") + getQty("essential-voice");
 
       const rows = document.querySelectorAll("#table-body tr[data-item]");
       let totalCurrentBonus = 0;
@@ -716,11 +706,9 @@
       document.querySelectorAll(".qty-input, .performance-input, .oem-current-total, .oem-max-total").forEach((input) => {
         input.value = 0;
       });
-
       document.getElementById("voice-minimum").checked = false;
       document.getElementById("bts-minimum").checked = false;
       document.getElementById("hours-worked").value = 8;
-
       localStorage.removeItem(STORAGE_KEY);
       calculateTotals();
     }
@@ -728,7 +716,6 @@
     document.querySelectorAll(".qty-input, .performance-input, .oem-current-total, .oem-max-total, .hours-input").forEach((input) => {
       input.addEventListener("input", handleInputChange);
     });
-
     document.getElementById("voice-minimum").addEventListener("change", handleInputChange);
     document.getElementById("bts-minimum").addEventListener("change", handleInputChange);
     document.getElementById("clear-btn").addEventListener("click", clearAll);
