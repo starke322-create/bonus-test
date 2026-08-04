@@ -62,6 +62,27 @@
       border-bottom: 1px solid var(--border);
     }
 
+    .minimums-bar {
+      display: flex;
+      gap: 24px;
+      justify-content: center;
+      align-items: center;
+      padding: 12px;
+      border-left: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      background: #f7f7f7;
+      font-weight: 700;
+    }
+
+    .minimums-bar label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #222;
+      font-size: 15px;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
@@ -232,6 +253,12 @@
         font-size: 12px;
       }
 
+      .minimums-bar {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+      }
+
       button { width: 100%; }
     }
   </style>
@@ -272,6 +299,17 @@
         </tr>
       </tbody>
     </table>
+
+    <div class="minimums-bar">
+      <label>
+        <input type="checkbox" id="voice-minimum" />
+        Achieved Net Voice Minimum
+      </label>
+      <label>
+        <input type="checkbox" id="bts-minimum" />
+        Achieved Net BTS Minimum
+      </label>
+    </div>
 
     <table>
       <thead>
@@ -411,7 +449,6 @@
           <td class="money"><input class="oem-max-total" type="number" min="0" step="0.01" value="0" /></td>
         </tr>
 
-        <!-- Summary section starts at column 2, with Hours Worked input in column 1 -->
         <tr>
           <td class="hours-label" rowspan="4">
             Hours Worked
@@ -442,13 +479,12 @@
     </div>
 
     <div class="note">
-      Current payout adjusts by current performance provided. Estimate does not include store acelerators or decelerators. Enter NET qty amounts.
-      Max/Current Additional Hourly are calculated as total bonus divided by Hours Worked.
+      Current payout adjusts by performance + minimum checkboxes. Enter NET qty amounts. Auto-saves locally.
     </div>
   </div>
 
   <script>
-    const STORAGE_KEY = "unofficial_bonus_estimate_saved_data_v2";
+    const STORAGE_KEY = "unofficial_bonus_estimate_saved_data_v3";
 
     function formatMoney(value) {
       return "$" + Number(value).toFixed(2);
@@ -491,35 +527,76 @@
       return 0;
     }
 
-    function getCurrentPayout(item, maxRate, perf) {
+    function getQty(item) {
+      const row = document.querySelector(`tr[data-item="${item}"]`);
+      if (!row) return 0;
+      return parseFloat(row.querySelector(".qty-input")?.value) || 0;
+    }
+
+    function getCurrentPayout(item, maxRate, perf, flags, voiceFamilyCombinedQty) {
       const voiceDeduction = getVoiceDeduction(perf.voice);
       const premiumDeduction = getBtsDeductionForPremium(perf.bts);
       const hintDeduction = getBtsDeductionForHint(perf.bts);
       const syncDeduction = getBtsDeductionForSyncUp(perf.bts);
       const p360Deduction = getP360Deduction(perf.p360);
 
+      // Voice-minimum NOT achieved logic
+      if (!flags.voiceMinimumAchieved) {
+        // Special override if voice family qty >= 30
+        if (voiceFamilyCombinedQty >= 30) {
+          if (perf.voice >= 105 && perf.voice < 112.5) {
+            if (item === "beyond-voice") return 35;
+            if (item === "voice") return 25;
+            if (item === "essential-voice") return 18;
+          } else if (perf.voice < 105) {
+            if (item === "beyond-voice") return 25;
+            if (item === "voice") return 15;
+            if (item === "essential-voice") return 8;
+          }
+        }
+
+        // Base no-minimum voice rules
+        if (item === "beyond-voice") return perf.voice > 104.99 ? 20 : 10;
+        if (item === "voice") return perf.voice > 104.99 ? 10 : 0;
+        if (item === "essential-voice") return perf.voice > 104.99 ? 3 : 0;
+      }
+
+      // BTS-minimum NOT achieved logic
+      if (!flags.btsMinimumAchieved) {
+        if (item === "hint") return perf.bts > 109.99 ? 10 : 0;
+        if (item === "premium-bts") return perf.bts > 109.99 ? 2 : 0;
+        if (item === "sync-up") return 0; // per your rule unless BTS minimum is checked
+      }
+
       switch (item) {
         case "beyond-voice":
         case "voice":
         case "essential-voice":
           return Math.max(0, maxRate - voiceDeduction);
+
         case "upgrades":
         case "hometech":
         case "more-line-mig":
         case "beyond-line-mig":
         case "visa-app":
           return maxRate;
+
         case "tlife-assisted":
           return perf.tlife < 65 ? 0 : maxRate;
+
         case "premium-bts":
           return Math.max(0, maxRate - premiumDeduction);
+
         case "hint":
           return Math.max(0, maxRate - hintDeduction);
+
         case "sync-up":
           return Math.max(0, maxRate - syncDeduction);
+
         case "p360":
         case "byod-p360":
           return Math.max(0, maxRate - p360Deduction);
+
         default:
           return maxRate;
       }
@@ -531,6 +608,8 @@
         perfBts: document.getElementById("perf-bts").value,
         perfP360: document.getElementById("perf-p360").value,
         perfTlife: document.getElementById("perf-tlife").value,
+        voiceMinimumAchieved: document.getElementById("voice-minimum").checked,
+        btsMinimumAchieved: document.getElementById("bts-minimum").checked,
         hoursWorked: document.getElementById("hours-worked").value,
         qtyValues: Array.from(document.querySelectorAll(".qty-input")).map((input) => input.value),
         oemCurrent: document.querySelector(".oem-current-total")?.value || "0",
@@ -553,6 +632,8 @@
         if (data.perfBts !== undefined) document.getElementById("perf-bts").value = data.perfBts;
         if (data.perfP360 !== undefined) document.getElementById("perf-p360").value = data.perfP360;
         if (data.perfTlife !== undefined) document.getElementById("perf-tlife").value = data.perfTlife;
+        if (data.voiceMinimumAchieved !== undefined) document.getElementById("voice-minimum").checked = !!data.voiceMinimumAchieved;
+        if (data.btsMinimumAchieved !== undefined) document.getElementById("bts-minimum").checked = !!data.btsMinimumAchieved;
         if (data.hoursWorked !== undefined) document.getElementById("hours-worked").value = data.hoursWorked;
 
         const qtyInputs = document.querySelectorAll(".qty-input");
@@ -579,7 +660,14 @@
         tlife: parseFloat(document.getElementById("perf-tlife").value) || 0
       };
 
+      const flags = {
+        voiceMinimumAchieved: document.getElementById("voice-minimum").checked,
+        btsMinimumAchieved: document.getElementById("bts-minimum").checked
+      };
+
       const hoursWorked = parseFloat(document.getElementById("hours-worked").value) || 0;
+      const voiceFamilyCombinedQty =
+        getQty("beyond-voice") + getQty("voice") + getQty("essential-voice");
 
       const rows = document.querySelectorAll("#table-body tr[data-item]");
       let totalCurrentBonus = 0;
@@ -588,18 +676,17 @@
       rows.forEach((row) => {
         const item = row.dataset.item;
         const maxRate = parseFloat(row.dataset.maxRate) || 0;
-        const qtyInput = row.querySelector(".qty-input");
-        const qty = parseFloat(qtyInput.value) || 0;
+        const qty = parseFloat(row.querySelector(".qty-input")?.value) || 0;
 
         if (row.dataset.oem === "true") {
-          const oemCurrent = parseFloat(row.querySelector(".oem-current-total").value) || 0;
-          const oemMax = parseFloat(row.querySelector(".oem-max-total").value) || 0;
+          const oemCurrent = parseFloat(row.querySelector(".oem-current-total")?.value) || 0;
+          const oemMax = parseFloat(row.querySelector(".oem-max-total")?.value) || 0;
           totalCurrentBonus += oemCurrent;
           totalMaxBonus += oemMax;
           return;
         }
 
-        const currentPayout = getCurrentPayout(item, maxRate, perf);
+        const currentPayout = getCurrentPayout(item, maxRate, perf, flags, voiceFamilyCombinedQty);
         const currentBonus = currentPayout * qty;
         const maxBonus = maxRate * qty;
 
@@ -629,6 +716,9 @@
       document.querySelectorAll(".qty-input, .performance-input, .oem-current-total, .oem-max-total").forEach((input) => {
         input.value = 0;
       });
+
+      document.getElementById("voice-minimum").checked = false;
+      document.getElementById("bts-minimum").checked = false;
       document.getElementById("hours-worked").value = 8;
 
       localStorage.removeItem(STORAGE_KEY);
@@ -639,6 +729,8 @@
       input.addEventListener("input", handleInputChange);
     });
 
+    document.getElementById("voice-minimum").addEventListener("change", handleInputChange);
+    document.getElementById("bts-minimum").addEventListener("change", handleInputChange);
     document.getElementById("clear-btn").addEventListener("click", clearAll);
 
     loadSavedData();
