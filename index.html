@@ -312,7 +312,7 @@
         <tr data-item="upgrades" data-max-rate="1">
           <td class="pink">Upgrades</td>
           <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
-          <td class="current-payout-cell">$1.00</td>
+          <td class="current-payout-cell">$0.00</td>
           <td class="money current-bonus">$0.00</td>
           <td class="pink">$1.00</td>
           <td class="money max-bonus">$0.00</td>
@@ -365,7 +365,7 @@
         <tr data-item="visa-app" data-max-rate="25">
           <td class="pink">VISA App</td>
           <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
-          <td class="current-payout-cell">$25.00</td>
+          <td class="current-payout-cell">$0.00</td>
           <td class="money current-bonus">$0.00</td>
           <td class="pink">$25.00</td>
           <td class="money max-bonus">$0.00</td>
@@ -389,7 +389,7 @@
         <tr data-item="hometech" data-max-rate="8">
           <td class="pink">Hometech</td>
           <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
-          <td class="current-payout-cell">$8.00</td>
+          <td class="current-payout-cell">$0.00</td>
           <td class="money current-bonus">$0.00</td>
           <td class="pink">$8.00</td>
           <td class="money max-bonus">$0.00</td>
@@ -397,7 +397,7 @@
         <tr data-item="more-line-mig" data-max-rate="2">
           <td class="pink">More LINE Mig</td>
           <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
-          <td class="current-payout-cell">$2.00</td>
+          <td class="current-payout-cell">$0.00</td>
           <td class="money current-bonus">$0.00</td>
           <td class="pink">$2.00</td>
           <td class="money max-bonus">$0.00</td>
@@ -405,7 +405,7 @@
         <tr data-item="beyond-line-mig" data-max-rate="4">
           <td class="pink">Beyond LINE Mig</td>
           <td><input class="qty-input" type="number" min="0" step="1" value="0" /></td>
-          <td class="current-payout-cell">$4.00</td>
+          <td class="current-payout-cell">$0.00</td>
           <td class="money current-bonus">$0.00</td>
           <td class="pink">$4.00</td>
           <td class="money max-bonus">$0.00</td>
@@ -449,13 +449,13 @@
     </div>
 
     <div class="note">
-      Current payout adjusts by current performance provided. Estimate does not include store acelerators or decelerators. Enter NET qty amounts.
-      Max/Current Additional Hourly are calculated as total bonus divided by Hours Worked.
+      Current payout uses quantity minimums in code (Voice minimum: 11 combined; BTS minimum: 7 combined including BTS row).
+      Current payout includes relevant table spiffs; max payout stays fixed.
     </div>
   </div>
 
   <script>
-    const STORAGE_KEY = "unofficial_bonus_estimate_saved_data_v2";
+    const STORAGE_KEY = "unofficial_bonus_estimate_saved_data_v6";
 
     function formatMoney(value) {
       return "$" + Number(value).toFixed(2);
@@ -466,94 +466,6 @@
       if (!row) return 0;
       const input = row.querySelector(".qty-input");
       return input ? (parseFloat(input.value) || 0) : 0;
-    }
-
-    function getVoiceDeduction(voicePerf) {
-      if (voicePerf < 80) return 25;
-      if (voicePerf < 100) return 22.5;
-      if (voicePerf < 105) return 19;
-      if (voicePerf < 112.5) return 9;
-      if (voicePerf < 125) return 4;
-      return 0;
-    }
-
-    function getBtsDeductionForPremium(btsPerf) {
-      if (btsPerf < 80) return 8;
-      if (btsPerf < 100) return 6;
-      if (btsPerf < 110) return 4;
-      if (btsPerf < 125) return 2;
-      return 0;
-    }
-
-    function getBtsDeductionForHint(btsPerf) {
-      if (btsPerf < 80) return 18;
-      if (btsPerf < 100) return 16;
-      if (btsPerf < 110) return 14;
-      if (btsPerf < 125) return 2;
-      return 0;
-    }
-
-    function getBtsDeductionForBts(btsPerf) {
-      if (btsPerf < 80) return 8;
-      if (btsPerf < 100) return 6;
-      if (btsPerf < 110) return 4;
-      if (btsPerf < 125) return 2;
-      return 0;
-    }
-
-    function getBtsDeductionForSyncUp(btsPerf) {
-      if (btsPerf < 80) return 5;
-      if (btsPerf < 100) return 4;
-      if (btsPerf < 125) return 2;
-      return 0;
-    }
-
-    function getP360Deduction(p360Perf) {
-      if (p360Perf < 35) return 10;
-      if (p360Perf < 40) return 5;
-      return 0;
-    }
-
-    function getCurrentPayout(item, maxRate, perf, minimums) {
-      const voiceDeduction = getVoiceDeduction(perf.voice);
-      const premiumDeduction = getBtsDeductionForPremium(perf.bts);
-      const hintDeduction = getBtsDeductionForHint(perf.bts);
-      const btsDeduction = getBtsDeductionForBts(perf.bts);
-      const syncDeduction = getBtsDeductionForSyncUp(perf.bts);
-      const p360Deduction = getP360Deduction(perf.p360);
-
-      switch (item) {
-        case "beyond-voice":
-        case "voice":
-        case "essential-voice":
-          if (!minimums.voice) return 0;
-          return Math.max(0, maxRate - voiceDeduction);
-        case "upgrades":
-        case "hometech":
-        case "more-line-mig":
-        case "beyond-line-mig":
-        case "visa-app":
-          return maxRate;
-        case "tlife-assisted":
-          return perf.tlife < 65 ? 0 : maxRate;
-        case "premium-bts":
-          if (!minimums.bts) return 0;
-          return Math.max(0, maxRate - premiumDeduction);
-        case "hint":
-          if (!minimums.bts) return 0;
-          return Math.max(0, maxRate - hintDeduction);
-        case "bts":
-          if (!minimums.bts) return 0;
-          return Math.max(0, maxRate - btsDeduction);
-        case "sync-up":
-          if (!minimums.bts) return 0;
-          return Math.max(0, maxRate - syncDeduction);
-        case "p360":
-        case "byod-p360":
-          return Math.max(0, maxRate - p360Deduction);
-        default:
-          return maxRate;
-      }
     }
 
     function getAllInputsData() {
@@ -602,6 +514,96 @@
       }
     }
 
+    // -------- Table 1 Base Logic --------
+    function getVoiceTable1Base(perfVoice, voiceQtyCombined) {
+      if (voiceQtyCombined < 11) return 0;
+
+      if (voiceQtyCombined >= 30) {
+        if (perfVoice <= 112.5) return 14;
+        if (perfVoice <= 125) return 15;
+        return 19;
+      }
+
+      if (perfVoice < 80) return 4;
+      if (perfVoice < 100) return 6.5;
+      if (perfVoice <= 112.5) return 10;
+      if (perfVoice <= 125) return 15;
+      return 19;
+    }
+
+    function getBtsTable1Base(perfBts, btsQtyCombined) {
+      if (btsQtyCombined < 7) return 0;
+      if (perfBts < 80) return 2;
+      if (perfBts < 100) return 4;
+      if (perfBts <= 125) return 6;
+      return 8;
+    }
+
+    // -------- Current Payout Logic --------
+    function getCurrentPayout(item, maxRate, perf, minimums) {
+      const voiceQtyCombined = minimums.voiceQtyCombined;
+      const btsQtyCombined = minimums.btsQtyCombined;
+
+      let table1Base = 0;
+      let table2Spiff = 0;
+
+      if (item === "beyond-voice" || item === "voice" || item === "essential-voice") {
+        // 30+ override
+        if (voiceQtyCombined >= 30) {
+          if (perf.voice >= 105 && perf.voice < 112.5) {
+            if (item === "beyond-voice") table1Base = 35;
+            if (item === "voice") table1Base = 25;
+            if (item === "essential-voice") table1Base = 18;
+          } else if (perf.voice < 105) {
+            if (item === "beyond-voice") table1Base = 25;
+            if (item === "voice") table1Base = 15;
+            if (item === "essential-voice") table1Base = 8;
+          } else {
+            table1Base = getVoiceTable1Base(perf.voice, voiceQtyCombined);
+          }
+        } else {
+          table1Base = getVoiceTable1Base(perf.voice, voiceQtyCombined);
+        }
+
+        // table 2 spiffs
+        if (perf.voice >= 105) table2Spiff += 10;   // Voice activation spiff
+        if (item === "essential-voice") table2Spiff += -7; // Essential spiff
+      }
+      else if (item === "hint" || item === "premium-bts" || item === "bts" || item === "sync-up") {
+        table1Base = getBtsTable1Base(perf.bts, btsQtyCombined);
+
+        // table 2 spiffs
+        if (item === "hint" && perf.bts > 110) table2Spiff += 10;
+        if ((item === "premium-bts" || item === "hint") && perf.bts >= 110) table2Spiff += 2; // HSI treated as premium BTS
+        if (item === "sync-up") table2Spiff += -3; // floor at 0 below
+      }
+      else {
+        switch (item) {
+          case "upgrades":
+            table1Base = 0; table2Spiff = 1; break;
+          case "tlife-assisted":
+            table1Base = 0; table2Spiff = perf.tlife > 65 ? 5 : 0; break;
+          case "visa-app":
+            table1Base = 0; table2Spiff = 25; break;
+          case "p360":
+            table1Base = 0; table2Spiff = (perf.p360 >= 40 ? 5 : (perf.p360 <= 35 ? -5 : 0)); break;
+          case "byod-p360":
+            table1Base = 0; table2Spiff = 2 + (perf.p360 >= 40 ? 5 : (perf.p360 <= 35 ? -5 : 0)); break;
+          case "hometech":
+            table1Base = 0; table2Spiff = 8; break;
+          case "more-line-mig":
+            table1Base = 0; table2Spiff = 2; break;
+          case "beyond-line-mig":
+            table1Base = 0; table2Spiff = 4; break;
+          default:
+            table1Base = maxRate;
+            table2Spiff = 0;
+        }
+      }
+
+      return Math.max(0, table1Base + table2Spiff);
+    }
+
     function calculateTotals() {
       const perf = {
         voice: parseFloat(document.getElementById("perf-voice").value) || 0,
@@ -613,26 +615,22 @@
       const voiceQtyCombined = getQty("beyond-voice") + getQty("voice") + getQty("essential-voice");
       const btsQtyCombined = getQty("hint") + getQty("premium-bts") + getQty("bts") + getQty("sync-up");
 
-      const minimums = {
-        voice: voiceQtyCombined >= 11,
-        bts: btsQtyCombined >= 7
-      };
+      const minimums = { voiceQtyCombined, btsQtyCombined };
 
       const hoursWorked = parseFloat(document.getElementById("hours-worked").value) || 0;
-
       const rows = document.querySelectorAll("#table-body tr[data-item]");
+
       let totalCurrentBonus = 0;
       let totalMaxBonus = 0;
 
       rows.forEach((row) => {
         const item = row.dataset.item;
         const maxRate = parseFloat(row.dataset.maxRate) || 0;
-        const qtyInput = row.querySelector(".qty-input");
-        const qty = parseFloat(qtyInput.value) || 0;
+        const qty = parseFloat(row.querySelector(".qty-input")?.value) || 0;
 
         if (row.dataset.oem === "true") {
-          const oemCurrent = parseFloat(row.querySelector(".oem-current-total").value) || 0;
-          const oemMax = parseFloat(row.querySelector(".oem-max-total").value) || 0;
+          const oemCurrent = parseFloat(row.querySelector(".oem-current-total")?.value) || 0;
+          const oemMax = parseFloat(row.querySelector(".oem-max-total")?.value) || 0;
           totalCurrentBonus += oemCurrent;
           totalMaxBonus += oemMax;
           return;
